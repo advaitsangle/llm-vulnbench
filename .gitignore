@@ -9,3 +9,5 @@ scorecard*.json
 runs_*.json
 targets/
 runs/
+# Internal planning/design notes — kept local, not pushed.
+claude.md
