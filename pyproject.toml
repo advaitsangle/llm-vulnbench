@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vulnbench"
+version = "0.1.0"
+description = "Benchmark harness for LLM-augmented web vulnerability detection (SAST/DAST/LLM conditions, shared scoring)."
+requires-python = ">=3.11"
+readme = "README.md"
+dependencies = [
+    # Stdlib-only core. Backends/scanners shell out or use HTTP via urllib,
+    # so the harness imports and runs with zero third-party deps installed.
+    # Optional extras below enable richer backends.
+]
+
+[project.optional-dependencies]
+anthropic = ["anthropic>=0.40"]
+pretty = ["rich>=13"]
+dev = ["pytest>=8", "ruff>=0.5", "rich>=13"]
+
+[project.scripts]
+vulnbench = "vulnbench.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vulnbench*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM"]
+# B008: false positives on dataclass field(default_factory=...) are not an issue here.
+
+[tool.ruff.lint.per-file-ignores]
+# Tests favor readability over import-order and long inline JSON fixtures.
+"tests/*" = ["E501"]
