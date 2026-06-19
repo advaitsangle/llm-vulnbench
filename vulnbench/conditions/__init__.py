@@ -3,7 +3,7 @@
 Registry maps the ids used in the proposal / ``claude.md`` to classes:
 
     B1  Semgrep only                 (SAST baseline)        [implemented]
-    B2  OWASP ZAP only               (DAST baseline)        [stub]
+    B2  OWASP ZAP only               (DAST baseline)        [implemented]
     B3  LLM only                     (unaided model)        [implemented]
     C1  LLM + Semgrep output         (scanner-assisted)     [implemented]
     C2  LLM + ZAP output             (scanner-assisted)     [stub]
@@ -14,10 +14,11 @@ Registry maps the ids used in the proposal / ``claude.md`` to classes:
 from __future__ import annotations
 
 from .b1_semgrep import B1Semgrep
+from .b2_zap import B2Zap
 from .b3_llm import B3LLM
 from .base import Condition, ConditionContext, ConditionResult
 from .c1_llm_semgrep import C1LLMSemgrep
-from .stubs import A1MultiAgent, B2Zap, C2LLMZap, C3LLMRules
+from .stubs import A1MultiAgent, C2LLMZap, C3LLMRules
 
 REGISTRY: dict[str, type[Condition]] = {
     "B1": B1Semgrep,

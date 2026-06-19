@@ -23,26 +23,15 @@ class _Planned(Condition):
         )
 
 
-class B2Zap(_Planned):
-    id = "B2"
-    label = "OWASP ZAP only (DAST baseline)"
-    needs_model = False
-    plan = (
-        "Drive ZAP in daemon mode via its REST API (spider -> active scan -> "
-        "alerts). Map each alert's CWE + URL/method/param to a Finding with an "
-        "ENDPOINT location. Requires target.base_url. ZAP scorecard generator in "
-        "BenchmarkUtils confirms Benchmark compatibility."
-    )
-
-
 class C2LLMZap(_Planned):
     id = "C2"
     label = "LLM + ZAP output (scanner-assisted triage, DAST)"
     needs_model = True
     plan = (
-        "Mirror C1 on the DAST side: run B2's ZAP scan, group alerts by endpoint, "
-        "show each to the model with request/response evidence, ask for "
-        "confirm/candidate/not_supported. Reuses llm_common parsing."
+        "Mirror C1 on the DAST side: run B2's ZAP scan (scanners.run_zap), group "
+        "alerts by endpoint, show each to the model with request/response "
+        "evidence, ask for confirm/candidate/not_supported. Reuses llm_common "
+        "parsing."
     )
 
 

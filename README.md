@@ -14,7 +14,7 @@ See [`claude.md`](claude.md) for the full research design and decisions.
 | id | condition | status |
 |----|-----------|--------|
 | B1 | Semgrep only (SAST baseline) | ✅ implemented |
-| B2 | OWASP ZAP only (DAST baseline) | 🚧 stub (REST-API plan in `conditions/stubs.py`) |
+| B2 | OWASP ZAP only (DAST baseline) | ✅ implemented (Docker stack in `deploy/`) |
 | B3 | LLM only (unaided model reads source) | ✅ implemented |
 | C1 | LLM + Semgrep output (scanner-assisted triage) | ✅ implemented |
 | C2 | LLM + ZAP output (scanner-assisted triage, DAST) | 🚧 stub |
@@ -45,8 +45,8 @@ Scoring is decoupled: `scoring/benchmark.py` auto-scores OWASP Benchmark against
 vulnbench/
   schema.py            common finding schema
   models/              base + ollama + anthropic + registry (mock)
-  scanners/            semgrep_runner (B1/C1)
-  conditions/          base, b1, b3, c1, stubs (b2/c2/c3/a1)
+  scanners/            semgrep_runner (B1/C1), zap_runner (B2)
+  conditions/          base, b1, b2, b3, c1, stubs (c2/c3/a1)
   corpus/              Target descriptor
   scoring/             metrics, benchmark CSV matcher, listmatch
   harness.py           run_one / run_matrix pipeline (+ provenance)
@@ -94,6 +94,8 @@ back to plain text, and without `rich` it degrades gracefully.
 ### Real runs
 
 - **Semgrep** (B1/C1): `pipx install semgrep` (or `brew install semgrep`).
+- **OWASP ZAP** (B2/C2): bring up the app + ZAP daemon with
+  `docker compose -f deploy/docker-compose.yml up --build` (see [`deploy/`](deploy/README.md)).
 - **Local model** (scored): install [Ollama](https://ollama.com), then
   `ollama pull qwen3-coder:14b` and pass `--model local:qwen3-coder:14b`.
 - **Frontier ceiling**: `pip install '.[anthropic]'`, set `ANTHROPIC_API_KEY`,
@@ -108,6 +110,7 @@ Benchmark's own score = recall − FPR), plus tokens and latency.
 
 ## Status / next
 
-Implemented: B1, B3, C1, Benchmark scoring, CLI, the model/condition/scoring
-seams, tests. Next per `claude.md`: B2/C2 (ZAP REST), C3 (LLM-authored rules),
-A1 (multi-agent), and the realistic-app vuln-list curation.
+Implemented: B1, B2 (ZAP DAST, with the `deploy/` Docker stack), B3, C1, Benchmark
+scoring, CLI, the model/condition/scoring seams, tests. Next per `claude.md`: C2
+(LLM+ZAP triage), C3 (LLM-authored rules), A1 (multi-agent), and the realistic-app
+vuln-list curation.

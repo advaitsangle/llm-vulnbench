@@ -6,8 +6,11 @@ __pycache__/
 .ruff_cache/
 .DS_Store
 scorecard*.json
+findings*.json
 runs_*.json
 targets/
 runs/
+# Local run artifacts under deploy/ (smoke ground truth + scorecards/findings).
+deploy/smoke-gt.csv
 # Internal planning/design notes — kept local, not pushed.
 claude.md

@@ -119,13 +119,21 @@ class Finding:
     def benchmark_test_case(self) -> str | None:
         """Resolve this finding to a Benchmark test-case id, if it maps to one.
 
-        For SAST the test case is encoded in the file path; for an explicit
-        TEST_CASE location it is the id directly.
+        For SAST the test case is encoded in the file path; for DAST it is
+        encoded in the request URL (the running Benchmark exposes each case at a
+        URL like ``/benchmark/sqli-00/BenchmarkTest00001``); for an explicit
+        TEST_CASE location it is the id directly. This is what lets a ZAP alert
+        (B2/C2) score against the same ``expectedresults`` CSV as Semgrep.
         """
         if self.location.kind is LocationKind.TEST_CASE:
             return self.location.test_case
-        if self.location.kind is LocationKind.SOURCE and self.location.file:
-            m = _BENCHMARK_TESTCASE_RE.search(self.location.file)
+        coordinate = None
+        if self.location.kind is LocationKind.SOURCE:
+            coordinate = self.location.file
+        elif self.location.kind is LocationKind.ENDPOINT:
+            coordinate = self.location.url
+        if coordinate:
+            m = _BENCHMARK_TESTCASE_RE.search(coordinate)
             if m:
                 return m.group(0)
         return None

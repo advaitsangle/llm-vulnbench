@@ -1,0 +1,63 @@
+# Brings up "both" for the DAST conditions (B2, later C2): the OWASP Benchmark
+# application under test AND an OWASP ZAP daemon, on one Docker network so ZAP can
+# reach the app by service name. The vulnbench harness runs on the host and talks
+# to ZAP over the published port; ZAP attacks the Benchmark inside the network.
+#
+#   docker compose -f deploy/docker-compose.yml up --build      # first run is slow
+#   # then, from code/ :
+#   .venv/bin/python -m vulnbench.cli run --condition B2 \
+#       --url https://benchmark:8443/benchmark/ --kind benchmark \
+#       --ground-truth ./targets/BenchmarkJava/expectedresults-1.2.csv \
+#       --config '{"zap_url": "http://127.0.0.1:8090"}' \
+#       -o scorecard-b2.json --findings-out findings-b2.json
+#
+# Note the scan target is the in-network name `benchmark` (ZAP resolves it),
+# while `zap_url` is localhost (the harness reaches ZAP via the published port).
+
+services:
+  benchmark:
+    # OWASP BenchmarkJava: a Maven WAR served on Tomcat 9 over HTTPS:8443.
+    # Built from the gitignored source clone at ../targets/BenchmarkJava.
+    # Java target is 8; Spring 5.3 / Tomcat 9 build cleanly on a JDK 17 image.
+    image: maven:3.9-eclipse-temurin-17
+    working_dir: /benchmark
+    volumes:
+      - ../targets/BenchmarkJava:/benchmark
+      - maven-repo:/root/.m2          # cache deps so re-launches are fast
+    # `-Drunenv=remote` binds Tomcat for access from the ZAP container, not just
+    # localhost. cargo:run stays in the foreground and serves until stopped.
+    # The pom defaults Tomcat to an 8G max heap — larger than the whole Docker VM
+    # on a 16GB laptop — which OOM-kills co-running ZAP. Cap it: the app idles
+    # near ~400MB, so 2G is ample.
+    command: >
+      sh -c "mvn -q initialize &&
+             mvn -q clean package cargo:run -Pdeploy -Drunenv=remote
+                 -Dtomcat.jvmargs='-Xms512m -Xmx2g'"
+    expose:
+      - "8443"
+    healthcheck:
+      # App is ready once the context responds (self-signed cert -> -k).
+      test: ["CMD", "sh", "-c", "curl -fsk https://localhost:8443/benchmark/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 40                      # first build downloads the Maven world
+      start_period: 120s
+
+  zap:
+    # OWASP ZAP in headless daemon mode, REST API published on 8090.
+    # api.disablekey=true keeps the harness call simple (zap_api_key stays "");
+    # for a hardened setup, set a key here and pass it via --config zap_api_key.
+    image: ghcr.io/zaproxy/zaproxy:stable
+    command: >
+      zap.sh -daemon -host 0.0.0.0 -port 8090
+             -config api.disablekey=true
+             -config api.addrs.addr.name=.*
+             -config api.addrs.addr.regex=true
+    ports:
+      - "8090:8090"
+    depends_on:
+      benchmark:
+        condition: service_healthy
+
+volumes:
+  maven-repo:
