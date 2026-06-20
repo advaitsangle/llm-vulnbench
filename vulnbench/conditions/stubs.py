@@ -23,12 +23,13 @@ class _Planned(Condition):
         )
 
 
-class A1MultiAgent(_Planned):
-    id = "A1"
-    label = "Multi-agent roles (scan + verify)"
+class A2SourceToSink(_Planned):
+    id = "A2"
+    label = "Source-to-sink finder (pure-LLM taint walk)"
     needs_model = True
     plan = (
-        "Scanning agent drives Semgrep/ZAP as tools; a separate verifier agent "
-        "checks each finding before it is reported (role-to-role handoff). Scoped "
-        "as a stretch demo on realistic apps, not a scored Benchmark sweep."
+        "Pure-LLM source-to-sink hunter: from entry points (routes/controllers) "
+        "the model follows untrusted data across files toward sinks, reading only "
+        "along tainted paths instead of every file. Scoped as a demo on a realistic "
+        "app (OWASP Juice Shop), not a scored Benchmark sweep."
     )
