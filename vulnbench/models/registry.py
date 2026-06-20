@@ -9,28 +9,25 @@ Spec grammar::
 
 from __future__ import annotations
 
+from .anthropic_backend import AnthropicBackend
 from .base import ModelBackend
+from .mock_backend import MockBackend
+from .ollama_backend import OllamaBackend
 
 
 def build_backend(spec: str) -> ModelBackend:
     """Construct a backend from a ``--model`` string."""
     spec = spec.strip()
     if spec == "mock":
-        from .mock_backend import MockBackend
-
         return MockBackend()
 
     kind, _, rest = spec.partition(":")
     if kind == "local":
-        from .ollama_backend import OllamaBackend
-
         model = rest or "qwen3-coder:14b"
         return OllamaBackend(model=model)
     if kind == "api":
         provider, _, model = rest.partition(":")
         if provider == "anthropic":
-            from .anthropic_backend import AnthropicBackend
-
             return AnthropicBackend(model=model or "claude-opus-4-8")
         raise ValueError(f"Unknown API provider: {provider!r} (supported: anthropic)")
 
