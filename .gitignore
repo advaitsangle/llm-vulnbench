@@ -14,3 +14,4 @@ runs/
 deploy/smoke-gt.csv
 # Internal planning/design notes — kept local, not pushed.
 claude.md
+claude/

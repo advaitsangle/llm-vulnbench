@@ -52,8 +52,8 @@ def test_b3_with_scripted_model_detects_real_case(tmp_path):
     assert record.metrics["tn"] == 1
 
 
-def test_unknown_condition_is_captured_not_raised(tmp_path):
+def test_planned_stub_error_is_captured_not_raised(tmp_path):
     target = _make_benchmark(tmp_path)
-    record, _ = run_one(target, "A1", model=MockBackend())
+    record, _ = run_one(target, "A2", model=MockBackend())  # A2 is still a stub
     assert record.error is not None
     assert "not implemented" in record.error.lower()

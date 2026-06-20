@@ -28,11 +28,11 @@ def test_total_latency_is_at_least_model_latency(tmp_path):
 
 def test_debug_reraises_instead_of_capturing(tmp_path):
     target = _benchmark(tmp_path)
-    # A1 is a stub that raises NotImplementedError.
+    # A2 is a stub that raises NotImplementedError.
     with pytest.raises(NotImplementedError):
-        run_one(target, "A1", model=MockBackend(), debug=True)
+        run_one(target, "A2", model=MockBackend(), debug=True)
     # Without debug, the error is captured into the record.
-    record, _ = run_one(target, "A1", model=MockBackend(), debug=False)
+    record, _ = run_one(target, "A2", model=MockBackend(), debug=False)
     assert record.error is not None
 
 

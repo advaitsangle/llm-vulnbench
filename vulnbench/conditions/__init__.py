@@ -8,11 +8,13 @@ Registry maps the ids used in the proposal / ``claude.md`` to classes:
     C1  LLM + Semgrep output         (scanner-assisted)     [implemented]
     C2  LLM + ZAP output             (scanner-assisted)     [implemented]
     C3  LLM-authored Semgrep rules   (LLM improves tool)    [implemented]
-    A1  Multi-agent roles            (scan + verify)        [stub]
+    A1  Multi-agent roles            (scout/hunt/verify)    [implemented]
+    A2  Source-to-sink finder        (pure-LLM taint walk)  [stub]
 """
 
 from __future__ import annotations
 
+from .a1_agents import A1MultiAgent
 from .b1_semgrep import B1Semgrep
 from .b2_zap import B2Zap
 from .b3_llm import B3LLM
@@ -20,7 +22,7 @@ from .base import Condition, ConditionContext, ConditionResult
 from .c1_llm_semgrep import C1LLMSemgrep
 from .c2_llm_zap import C2LLMZap
 from .c3_llm_rules import C3LLMRules
-from .stubs import A1MultiAgent
+from .stubs import A2SourceToSink
 
 REGISTRY: dict[str, type[Condition]] = {
     "B1": B1Semgrep,
@@ -30,6 +32,7 @@ REGISTRY: dict[str, type[Condition]] = {
     "C2": C2LLMZap,
     "C3": C3LLMRules,
     "A1": A1MultiAgent,
+    "A2": A2SourceToSink,
 }
 
 
