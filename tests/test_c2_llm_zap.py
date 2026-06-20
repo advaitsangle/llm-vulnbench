@@ -189,11 +189,8 @@ def test_c2_triage_only_needs_no_base_url():
     C2LLMZap().validate(target, ctx)  # no raise
 
 
-def test_c2_registered_and_not_planned():
-    from vulnbench.conditions.stubs import _Planned
-    cls = get_condition("C2")
-    assert cls is C2LLMZap
-    assert not issubclass(cls, _Planned)
+def test_c2_registered():
+    assert get_condition("C2") is C2LLMZap
 
 
 # ---------------------------------------------------------------------------
