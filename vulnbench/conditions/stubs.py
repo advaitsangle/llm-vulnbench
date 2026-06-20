@@ -23,18 +23,6 @@ class _Planned(Condition):
         )
 
 
-class C2LLMZap(_Planned):
-    id = "C2"
-    label = "LLM + ZAP output (scanner-assisted triage, DAST)"
-    needs_model = True
-    plan = (
-        "Mirror C1 on the DAST side: run B2's ZAP scan (scanners.run_zap), group "
-        "alerts by endpoint, show each to the model with request/response "
-        "evidence, ask for confirm/candidate/not_supported. Reuses llm_common "
-        "parsing."
-    )
-
-
 class C3LLMRules(_Planned):
     id = "C3"
     label = "LLM-authored Semgrep rules (LLM improves the tool)"
