@@ -1,6 +1,6 @@
 """A target application a condition is evaluated against.
 
-Two kinds matter for scoring (``claude.md``):
+Two kinds matter for scoring:
 
 * ``BENCHMARK`` — OWASP Benchmark: auto-scored against ``expectedresults-1.2.csv``.
   Has both a source tree (for SAST/LLM) and, when deployed, a running URL (DAST).

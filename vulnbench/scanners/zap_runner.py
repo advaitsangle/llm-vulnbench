@@ -1,6 +1,6 @@
 """Drive OWASP ZAP and normalize its alerts to :class:`Finding`.
 
-ZAP is the primary DAST tool (``claude.md``): free, scriptable over a REST API in
+ZAP is the primary DAST tool: free, scriptable over a REST API in
 daemon mode, and the OWASP Benchmark ships a ZAP scorecard generator, so a ZAP run
 is scorable against the *same* ground truth as Semgrep. That shared-ground-truth
 property is the whole point of the B2 (and later C2) cell.

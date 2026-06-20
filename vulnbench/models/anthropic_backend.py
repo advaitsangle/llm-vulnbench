@@ -1,6 +1,6 @@
 """Frontier model backend via the Anthropic API.
 
-This is the *ceiling* backend per ``claude.md``: used to show frontier headroom,
+This is the *ceiling* backend: used to show frontier headroom,
 reported separately from the scored local-model runs. Requires API credits and the
 ``anthropic`` extra (``pip install vulnbench[anthropic]``); the harness core does
 not depend on it.

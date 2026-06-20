@@ -1,6 +1,6 @@
 """Score findings against a curated realistic-app vuln list (fuzzy matching).
 
-For Juice Shop / WebGoat / DVWA there is no Benchmark CSV. Per ``claude.md`` we
+For Juice Shop / WebGoat / DVWA there is no Benchmark CSV. We
 curate a one-time ground-truth list per app and match findings to it on
 ``(vuln_class, location)`` with fuzzy location matching. Numbers are approximate by
 design — this is the qualitative path, kept deliberately separate from the

@@ -13,7 +13,7 @@ test case then contributes exactly one cell of the confusion matrix:
     not real & detected  -> FP        not real & not det.  -> TN
 
 This is the apples-to-apples path: SAST, DAST, and every LLM condition are scored
-the same way against the same labels (the methodology linchpin in ``claude.md``).
+the same way against the same labels (the methodology linchpin).
 """
 
 from __future__ import annotations

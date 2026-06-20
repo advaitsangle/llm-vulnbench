@@ -3,7 +3,7 @@
 Every condition — a static scanner, a dynamic scanner, or an LLM — emits its
 results as a list of :class:`Finding`. Normalizing to one schema is what lets a
 SAST result (``file:line``) and a DAST result (``url + method + param``) land in
-the same scorecard. The schema follows the design pinned in ``claude.md``:
+the same scorecard. The schema follows this design:
 
     { vuln_class (CWE id), location, confidence, verdict, evidence,
       source_condition }

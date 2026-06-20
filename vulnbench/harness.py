@@ -1,6 +1,6 @@
 """The end-to-end harness: run a condition on a target and score it.
 
-One pass of the pipeline from ``claude.md``:
+One pass of the pipeline:
 
     1. (target already deployed: source tree on disk and/or base_url up)
     2. run the condition           -> normalized Findings + Usage

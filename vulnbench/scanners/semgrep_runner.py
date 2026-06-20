@@ -1,6 +1,6 @@
 """Run Semgrep and normalize its JSON output to :class:`Finding`.
 
-Semgrep is the primary SAST tool (``claude.md``): multi-language, deterministic,
+Semgrep is the primary SAST tool: multi-language, deterministic,
 and the baseline used by the comparison papers, which makes B1 comparable to prior
 work. The B1 baseline is itself a *config choice* — we fix one ruleset and record
 it. The default here is ``p/owasp-top-ten`` because the OWASP Benchmark is labeled

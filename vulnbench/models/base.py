@@ -2,8 +2,8 @@
 
 Every condition that uses an LLM talks to a :class:`ModelBackend` and never to a
 concrete provider. That single seam is what makes "local Qwen vs frontier Claude"
-a swappable factor rather than a code fork (the harness-vision note in
-``claude.md``). Backends report token usage and latency so the engineering metrics
+a swappable factor rather than a code fork. Backends report token usage and
+latency so the engineering metrics
 (cost, wall-clock) come for free.
 """
 

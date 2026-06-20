@@ -1,6 +1,6 @@
 """C1 — LLM + Semgrep output. The scanner-assisted (triage) condition.
 
-This is the LLM4SA / LSAST pattern and the highest-value cell per ``claude.md``:
+This is the LLM4SA / LSAST pattern and the highest-value cell:
 Semgrep runs first, and the model is shown each finding (with the surrounding code)
 and asked to confirm, downgrade, or reject it, and to add anything Semgrep missed
 in the same file. Grouping Semgrep findings by file keeps the model's context tight

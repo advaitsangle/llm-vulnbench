@@ -1,6 +1,6 @@
 """Local model backend via the Ollama HTTP API.
 
-This is the *scored* backend per ``claude.md``: a local Qwen-Coder ~14B is the
+This is the *scored* backend by default: a local Qwen-Coder ~14B is the
 single fixed model for all officially scored runs (free, reproducible). We use
 ``urllib`` so the harness has no hard third-party dependency just to talk to a
 local server.

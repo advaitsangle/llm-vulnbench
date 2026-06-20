@@ -4,7 +4,7 @@ Unlike the triage conditions (C1/C2), where the model judges a scanner's output 
 scan time, here the model's work is paid **once, offline**: it writes custom Semgrep
 YAML rules from example vulnerable code, and then Semgrep runs those rules
 deterministically and reproducibly over the scored target. This tests whether an LLM
-can make the existing static tool *better* rather than replace it (``claude.md``).
+can make the existing static tool *better* rather than replace it.
 
 Two phases, split exactly like :class:`TriageCondition`'s scan/triage but inverted —
 author, then scan:
@@ -17,8 +17,7 @@ author, then scan:
 With neither knob, ``run`` authors *and* scans in one pass over the same source. That
 is convenient for a smoke test but is textbook benchmark-gaming — the rules are tuned
 on the very files they are scored on — so the trace flags it. The honest workflow is
-the phased one: author on a tuning split, score on a held-out split (the overfitting
-plan in ``claude.md``)::
+the phased one: author on a tuning split, score on a held-out split::
 
     # phase 1 — author on the tuning split
     vulnbench run --condition C3 --source tuning/ --model local:... \

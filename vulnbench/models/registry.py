@@ -1,6 +1,6 @@
 """Parse a ``--model`` spec into a backend.
 
-Spec grammar (from the harness-vision note in ``claude.md``)::
+Spec grammar::
 
     local:<ollama-model>        e.g. local:qwen3-coder:14b   (scored default)
     api:anthropic:<model>       e.g. api:anthropic:claude-opus-4-8  (ceiling)
