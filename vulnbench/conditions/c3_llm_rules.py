@@ -37,7 +37,7 @@ from ..models import Usage
 from ..scanners import run_semgrep, validate_rules
 from ..schema import benchmark_case_of
 from ..scoring import benchmark_cases_in_tree
-from ..scoring.benchmark import load_expected_results
+from ..scoring.owasp_benchmark import load_expected_results
 from .b3_llm import _iter_source_files, _read
 from .base import Condition, ConditionContext, ConditionResult
 

@@ -22,10 +22,11 @@ from __future__ import annotations
 import json
 
 from ..schema import Finding
-from .metrics import Metrics
+from .metrics_unifier import Metrics
 
 
-def load_vuln_list(path: str) -> list[dict]:
+def load_webapp_ground_truth(path: str) -> list[dict]:
+    """Load a curated vuln list JSON for a realistic app (Juice Shop, WebGoat, etc.)."""
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
 
@@ -37,7 +38,7 @@ def _loc_overlap(finding_key: str, expected_loc: str) -> bool:
     return bool(a & b)
 
 
-def score_list(findings: list[Finding], expected: list[dict]) -> Metrics:
+def score_webapp(findings: list[Finding], expected: list[dict]) -> Metrics:
     """Precision/recall/F1 against the curated list. TN is left 0 (no universe)."""
     matched_expected: set[int] = set()
     matched_findings: set[int] = set()
