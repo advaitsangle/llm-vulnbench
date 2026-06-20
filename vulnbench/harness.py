@@ -23,8 +23,8 @@ from .corpus import Target, TargetKind
 from .models import ModelBackend
 from .schema import Finding
 from .scoring import score_benchmark
-from .scoring.benchmark import load_expected_results
-from .scoring.listmatch import load_vuln_list, score_list
+from .scoring.owasp_benchmark import load_expected_results
+from .scoring.webapps_benchmark import load_webapp_ground_truth, score_webapp
 
 
 @dataclass
@@ -130,7 +130,7 @@ def _load_ground_truth(target: Target, cache: dict | None):
     if target.kind is TargetKind.BENCHMARK:
         gt: object = load_expected_results(target.ground_truth)
     else:
-        gt = load_vuln_list(target.ground_truth)
+        gt = load_webapp_ground_truth(target.ground_truth)
     if cache is not None:
         cache[target.ground_truth] = gt
     return gt
@@ -153,7 +153,7 @@ def _score(
     gt = _load_ground_truth(target, cache)
     if target.kind is TargetKind.BENCHMARK:
         return score_benchmark(findings, gt, scored_cases)  # type: ignore[arg-type]
-    return score_list(findings, gt)  # type: ignore[arg-type]
+    return score_webapp(findings, gt)  # type: ignore[arg-type]
 
 
 def run_matrix(

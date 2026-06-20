@@ -2,7 +2,7 @@
 
 precision, recall, F1, and false-positive rate — the OWASP-Benchmark metric set —
 computed from one confusion count so the Benchmark scorer and the realistic-app
-list-matcher report identically.
+webapp scorer report identically.
 """
 
 from __future__ import annotations

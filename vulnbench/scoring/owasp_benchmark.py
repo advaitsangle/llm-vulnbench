@@ -24,7 +24,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 
 from ..schema import Finding, benchmark_case_of
-from .metrics import Metrics, confusion_to_metrics
+from .metrics_unifier import Metrics, confusion_to_metrics
 
 
 @dataclass

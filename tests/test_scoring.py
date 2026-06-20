@@ -1,5 +1,5 @@
 from vulnbench.schema import Finding, Location
-from vulnbench.scoring.benchmark import ExpectedCase, score_benchmark
+from vulnbench.scoring.owasp_benchmark import ExpectedCase, score_benchmark
 
 
 def _expected():
