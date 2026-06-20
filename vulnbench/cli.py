@@ -39,6 +39,15 @@ from .report import Reporter
 from .schema import dump_findings
 
 
+class _BannerParser(argparse.ArgumentParser):
+    """ArgumentParser that prints the mascot banner before any --help output."""
+
+    def print_help(self, file=None) -> None:
+        print()
+        Reporter(pretty=sys.stdout.isatty()).banner()
+        super().print_help(file)
+
+
 def _cmd_list(_: argparse.Namespace) -> int:
     if sys.stdout.isatty():
         Reporter(pretty=True).banner()
@@ -162,14 +171,15 @@ examples:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
+    p = _BannerParser(
         prog="vulnbench",
         description="Benchmark LLM-augmented web vulnerability detection: run SAST, DAST, "
         "LLM, and combined conditions on a target and score them the same way.",
         epilog=_TOP_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    sub = p.add_subparsers(dest="command", required=True, metavar="{list,run}")
+    sub = p.add_subparsers(dest="command", required=True, metavar="{list,run}",
+                           parser_class=_BannerParser)
 
     sub.add_parser("list", help="print the condition matrix and exit").set_defaults(func=_cmd_list)
 
