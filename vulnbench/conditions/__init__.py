@@ -6,7 +6,7 @@ Registry maps the ids used in the proposal / ``claude.md`` to classes:
     B2  OWASP ZAP only               (DAST baseline)        [implemented]
     B3  LLM only                     (unaided model)        [implemented]
     C1  LLM + Semgrep output         (scanner-assisted)     [implemented]
-    C2  LLM + ZAP output             (scanner-assisted)     [stub]
+    C2  LLM + ZAP output             (scanner-assisted)     [implemented]
     C3  LLM-authored Semgrep rules   (LLM improves tool)    [stub]
     A1  Multi-agent roles            (scan + verify)        [stub]
 """
@@ -18,7 +18,8 @@ from .b2_zap import B2Zap
 from .b3_llm import B3LLM
 from .base import Condition, ConditionContext, ConditionResult
 from .c1_llm_semgrep import C1LLMSemgrep
-from .stubs import A1MultiAgent, C2LLMZap, C3LLMRules
+from .c2_llm_zap import C2LLMZap
+from .stubs import A1MultiAgent, C3LLMRules
 
 REGISTRY: dict[str, type[Condition]] = {
     "B1": B1Semgrep,

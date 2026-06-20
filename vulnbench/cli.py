@@ -57,6 +57,12 @@ def _cmd_run(args: argparse.Namespace) -> int:
     )
     model = build_backend(args.model) if args.model else None
     config = json.loads(args.config) if args.config else {}
+    # Phased triage (C1/C2): --scan-out runs only the scanner and saves its
+    # findings; --scan-in skips the scanner and triages those saved findings.
+    if args.scan_out:
+        config["scan_out"] = args.scan_out
+    if args.scan_in:
+        config["scan_in"] = args.scan_in
 
     # Pretty (rich) when attached to a TTY and not suppressed; plain otherwise.
     pretty = not args.plain and sys.stdout.isatty()
@@ -106,6 +112,16 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--model", help="model spec: local:<m> | api:anthropic:<m> | mock")
     r.add_argument("--name", help="display name for the target")
     r.add_argument("--config", help="JSON string of per-condition config knobs")
+    r.add_argument(
+        "--scan-out",
+        help="phased C1/C2: run only the scanner, save its findings here, skip the model "
+        "(do this with the Docker stack up)",
+    )
+    r.add_argument(
+        "--scan-in",
+        help="phased C1/C2: skip the scanner, load findings from here, run only the model "
+        "triage (do this with the stack down, RAM free for the model)",
+    )
     r.add_argument("-o", "--output", help="write scorecard JSON here")
     r.add_argument("--findings-out", help="write raw normalized findings JSON (for FP/FN audit)")
     r.add_argument("--plain", action="store_true", help="disable colored/animated output")

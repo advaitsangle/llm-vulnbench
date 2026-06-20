@@ -5,6 +5,12 @@ Semgrep runs first, and the model is shown each finding (with the surrounding co
 and asked to confirm, downgrade, or reject it, and to add anything Semgrep missed
 in the same file. Grouping Semgrep findings by file keeps the model's context tight
 and its judgement local to the evidence.
+
+The two phases (Semgrep scan, then model triage) are split via the
+:class:`TriageCondition` base so they can run separately — see ``scan_out`` /
+``scan_in`` there. For C1 the scan is cheap (Semgrep is a CLI, no Docker), so the
+split is mostly about reusing one scan across several models; the RAM win matters
+more for C2's Dockerized DAST scan.
 """
 
 from __future__ import annotations
@@ -17,28 +23,40 @@ from ..scanners import run_semgrep
 from ..scanners.semgrep_runner import DEFAULT_RULESET
 from ..schema import Finding, Location
 from .b3_llm import _read
-from .base import Condition, ConditionContext, ConditionResult
+from .base import ConditionContext, ConditionResult, TriageCondition
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
 
 
-class C1LLMSemgrep(Condition):
+class C1LLMSemgrep(TriageCondition):
     id = "C1"
     label = "LLM + Semgrep output (scanner-assisted triage)"
     needs_model = True
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         super().validate(target, ctx)
-        if not target.source_path:
+        # The scan phase needs a source tree; triage-only (scan_in) reads the
+        # source files referenced by the loaded findings, not target.source_path.
+        if not ctx.config.get("scan_in") and not target.source_path:
             raise ValueError(f"C1 needs target.source_path; {target.name} has none.")
 
-    def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
-        assert ctx.model is not None
+    def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
         ruleset = ctx.config.get("semgrep_ruleset", DEFAULT_RULESET)
+        semgrep = run_semgrep(target.source_path, config=ruleset, source_condition=self.id)
+        trace = {
+            "ruleset": ruleset,
+            "semgrep_version": semgrep.version,
+            "semgrep_raw_findings": len(semgrep.findings),
+        }
+        return semgrep.findings, trace
+
+    def triage(
+        self, scanner_findings: list[Finding], target: Target, ctx: ConditionContext
+    ) -> ConditionResult:
+        assert ctx.model is not None
         max_bytes = int(ctx.config.get("max_file_bytes", 60_000))
 
-        semgrep = run_semgrep(target.source_path, config=ruleset, source_condition=self.id)
         by_file: dict[str, list[Finding]] = defaultdict(list)
-        for f in semgrep.findings:
+        for f in scanner_findings:
             by_file[f.location.file or ""].append(f)
 
         findings: list[Finding] = []
@@ -63,9 +81,6 @@ class C1LLMSemgrep(Condition):
             usage=usage,
             trace={
                 "model": ctx.model.name,
-                "ruleset": ruleset,
-                "semgrep_version": semgrep.version,
-                "semgrep_raw_findings": len(semgrep.findings),
                 "files_reviewed": len(by_file),
                 "truncated_files": truncated,
             },
