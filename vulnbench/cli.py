@@ -30,6 +30,7 @@ import argparse
 import json
 import sys
 
+from .checkpoint import Checkpoint, default_path, signature
 from .conditions import REGISTRY
 from .corpus import Target, TargetKind
 from .harness import run_one
@@ -39,6 +40,9 @@ from .schema import dump_findings
 
 
 def _cmd_list(_: argparse.Namespace) -> int:
+    if sys.stdout.isatty():
+        Reporter(pretty=True).banner()
+        print()
     print("Condition matrix:\n")
     for cid in sorted(REGISTRY):
         cls = REGISTRY[cid]
@@ -67,23 +71,46 @@ def _cmd_run(args: argparse.Namespace) -> int:
     # Pretty (rich) when attached to a TTY and not suppressed; plain otherwise.
     pretty = not args.plain and sys.stdout.isatty()
     reporter = Reporter(pretty=pretty)
+    reporter.banner()
+
+    # Checkpointing is on by default: each finished condition is flushed to disk so
+    # an interrupted sweep (sleep / OOM / Ctrl-C) resumes instead of redoing work.
+    sig = signature(
+        target_name=target.name, kind=args.kind, source=args.source, url=args.url,
+        ground_truth=args.ground_truth, model=args.model, config=config,
+    )
+    ckpt_path = args.checkpoint or default_path(sig)
+    ckpt = Checkpoint(ckpt_path, sig, resume=not args.fresh)
 
     records = []           # RunRecord objects (for the reporter)
     records_json = []      # serialized (for the scorecard file + exit code)
     all_findings = []
     gt_cache: dict = {}
-    for cid in args.condition:
-        with reporter.running(cid, target.name):
-            record, findings = run_one(
-                target, cid, model=model, config=config,
-                ground_truth_cache=gt_cache, debug=args.debug,
-            )
-        records.append(record)
-        records_json.append(record.to_dict())
-        all_findings.extend(findings)
-        reporter.line(record)
+    reused = 0             # cells served from the checkpoint this run
+    with reporter.track(len(args.condition)) as tracker:
+        for cid in args.condition:
+            tracker.start(cid, target.name)
+            cached = ckpt.get(cid)
+            if cached is not None:
+                record, findings = cached
+                reused += 1
+                reporter.line(record, resumed=True)
+            else:
+                record, findings = run_one(
+                    target, cid, model=model, config=config,
+                    ground_truth_cache=gt_cache, debug=args.debug,
+                )
+                if record.error is None:
+                    ckpt.put(cid, record, findings)  # only checkpoint clean cells
+                reporter.line(record)
+            tracker.advance()
+            records.append(record)
+            records_json.append(record.to_dict())
+            all_findings.extend(findings)
 
     detail_paths: dict[str, str] = {}
+    if reused:
+        detail_paths[f"resumed {reused} cell(s) from"] = str(ckpt_path)
     if args.output:
         with open(args.output, "w", encoding="utf-8") as fh:
             json.dump(records_json, fh, indent=2)
@@ -124,6 +151,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     r.add_argument("-o", "--output", help="write scorecard JSON here")
     r.add_argument("--findings-out", help="write raw normalized findings JSON (for FP/FN audit)")
+    r.add_argument(
+        "--checkpoint",
+        help="checkpoint file to resume from / write to (default: runs/checkpoint-<hash>.json). "
+        "Finished conditions are saved here so an interrupted run can be resumed.",
+    )
+    r.add_argument(
+        "--fresh", action="store_true",
+        help="ignore any existing checkpoint and re-run every condition from scratch",
+    )
     r.add_argument("--plain", action="store_true", help="disable colored/animated output")
     r.add_argument("--debug", action="store_true", help="re-raise condition errors (don't capture)")
     r.set_defaults(func=_cmd_run)
