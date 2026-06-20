@@ -1,7 +1,18 @@
 """Pluggable model backends behind one ``complete(prompt, tools?)`` interface."""
 
+from .anthropic_backend import AnthropicBackend
 from .base import Completion, ModelBackend, ToolSpec, Usage
 from .mock_backend import MockBackend
+from .ollama_backend import OllamaBackend
 from .registry import build_backend
 
-__all__ = ["Completion", "ModelBackend", "MockBackend", "ToolSpec", "Usage", "build_backend"]
+__all__ = [
+    "AnthropicBackend",
+    "Completion",
+    "ModelBackend",
+    "MockBackend",
+    "OllamaBackend",
+    "ToolSpec",
+    "Usage",
+    "build_backend",
+]
