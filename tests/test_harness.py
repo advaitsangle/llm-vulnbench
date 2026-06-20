@@ -2,7 +2,7 @@ import pytest
 
 from vulnbench.corpus import Target, TargetKind
 from vulnbench.harness import run_one
-from vulnbench.models.registry import MockBackend
+from vulnbench.models import MockBackend
 
 
 def _benchmark(tmp_path):

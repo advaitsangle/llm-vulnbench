@@ -16,7 +16,7 @@ from vulnbench.conditions.base import ConditionContext
 from vulnbench.conditions.c2_llm_zap import C2LLMZap, _endpoint_key, _triage_prompt
 from vulnbench.corpus import Target, TargetKind
 from vulnbench.models import Completion, Usage
-from vulnbench.models.registry import MockBackend
+from vulnbench.models import MockBackend
 from vulnbench.scanners.zap_runner import findings_from_zap_alerts, run_zap
 from vulnbench.schema import Finding, dump_findings
 

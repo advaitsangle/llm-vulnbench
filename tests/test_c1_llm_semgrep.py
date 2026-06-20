@@ -16,7 +16,7 @@ from vulnbench.conditions.base import ConditionContext
 from vulnbench.conditions.c1_llm_semgrep import C1LLMSemgrep
 from vulnbench.corpus import Target, TargetKind
 from vulnbench.models import Completion, Usage
-from vulnbench.models.registry import MockBackend
+from vulnbench.models import MockBackend
 from vulnbench.schema import Finding, Location, dump_findings
 
 
