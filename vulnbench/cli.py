@@ -124,44 +124,94 @@ def _cmd_run(args: argparse.Namespace) -> int:
     return 0 if all(r.error is None for r in records) else 1
 
 
+_TOP_EPILOG = """\
+conditions:
+  B1 Semgrep (SAST)   B2 ZAP (DAST)   B3 LLM only
+  C1 LLM+Semgrep   C2 LLM+ZAP   C3 LLM-authored rules   A1 multi-agent
+  (run `vulnbench list` for the live matrix)
+
+models (--model):
+  mock                       offline, deterministic; no server needed
+  local:<name>               an Ollama model, e.g. local:qwen3-coder:14b
+  api:anthropic:<name>       an Anthropic model, e.g. api:anthropic:claude-opus-4-8
+
+examples:
+  vulnbench list
+  vulnbench run --condition B1 --source ./src --ground-truth gt.csv
+  vulnbench run --condition B3 C1 --source ./src --ground-truth gt.csv \\
+                --model local:qwen3-coder:14b -o card.json
+"""
+
+_RUN_EPILOG = """\
+notes:
+  Finished conditions are checkpointed to runs/checkpoint-<hash>.json and reused
+  on the next identical run; pass --fresh to re-run, --checkpoint to relocate it.
+
+  C1/C2 can be split to avoid holding the scanner and the model in RAM at once:
+    1. --scan-out alerts.json   (stack up)   run the scanner, save its alerts
+    2. --scan-in  alerts.json   (stack down) triage those alerts with the model
+
+examples:
+  # SAST baseline, scored (no model, no services)
+  vulnbench run --condition B1 --source ./src --ground-truth gt.csv
+
+  # scanner-assisted LLM triage, write scorecard + findings audit
+  vulnbench run --condition C1 --source ./src --ground-truth gt.csv \\
+                --model local:qwen3-coder:14b -o card.json --findings-out fn.json
+"""
+
+
 def build_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(prog="vulnbench", description=__doc__)
-    sub = p.add_subparsers(dest="command", required=True)
+    p = argparse.ArgumentParser(
+        prog="vulnbench",
+        description="Benchmark LLM-augmented web vulnerability detection: run SAST, DAST, "
+        "LLM, and combined conditions on a target and score them the same way.",
+        epilog=_TOP_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    sub = p.add_subparsers(dest="command", required=True, metavar="{list,run}")
 
-    sub.add_parser("list", help="list the condition matrix").set_defaults(func=_cmd_list)
+    sub.add_parser("list", help="print the condition matrix and exit").set_defaults(func=_cmd_list)
 
-    r = sub.add_parser("run", help="run condition(s) on a target")
-    r.add_argument("--condition", nargs="+", required=True, help="condition id(s), e.g. B1 C1")
-    r.add_argument("--source", help="path to target source tree")
-    r.add_argument("--url", help="base URL of the running target (DAST)")
-    r.add_argument("--ground-truth", help="expectedresults CSV or realistic-app vuln-list JSON")
-    r.add_argument("--kind", default="benchmark", choices=[k.value for k in TargetKind])
-    r.add_argument("--model", help="model spec: local:<m> | api:anthropic:<m> | mock")
-    r.add_argument("--name", help="display name for the target")
-    r.add_argument("--config", help="JSON string of per-condition config knobs")
-    r.add_argument(
-        "--scan-out",
-        help="phased C1/C2: run only the scanner, save its findings here, skip the model "
-        "(do this with the Docker stack up)",
+    r = sub.add_parser(
+        "run",
+        help="run condition(s) on a target and score them",
+        description="Run one or more conditions on a single target and score the findings "
+        "against ground truth. Results stream to the terminal; full data goes to --output.",
+        epilog=_RUN_EPILOG,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    r.add_argument(
-        "--scan-in",
-        help="phased C1/C2: skip the scanner, load findings from here, run only the model "
-        "triage (do this with the stack down, RAM free for the model)",
-    )
-    r.add_argument("-o", "--output", help="write scorecard JSON here")
-    r.add_argument("--findings-out", help="write raw normalized findings JSON (for FP/FN audit)")
-    r.add_argument(
-        "--checkpoint",
-        help="checkpoint file to resume from / write to (default: runs/checkpoint-<hash>.json). "
-        "Finished conditions are saved here so an interrupted run can be resumed.",
-    )
-    r.add_argument(
-        "--fresh", action="store_true",
-        help="ignore any existing checkpoint and re-run every condition from scratch",
-    )
+    # --- what to run -------------------------------------------------------
+    r.add_argument("--condition", nargs="+", required=True, metavar="ID",
+                   help="condition id(s) to run, e.g. B1 C1 (see `vulnbench list`)")
+    r.add_argument("--source", metavar="PATH", help="path to the target's source tree (SAST)")
+    r.add_argument("--url", metavar="URL", help="base URL of the running target (DAST)")
+    r.add_argument("--ground-truth", metavar="FILE",
+                   help="expectedresults CSV (benchmark) or vuln-list JSON (realistic)")
+    r.add_argument("--kind", default="benchmark", choices=[k.value for k in TargetKind],
+                   help="ground-truth/scoring shape (default: benchmark)")
+    r.add_argument("--model", metavar="SPEC",
+                   help="model spec: mock | local:<name> | api:anthropic:<name>")
+    r.add_argument("--name", metavar="NAME", help="display name for the target")
+    r.add_argument("--config", metavar="JSON",
+                   help='per-condition knobs as JSON, e.g. \'{"max_files": 20}\'')
+    # --- phased C1/C2 (split scanner from model) ---------------------------
+    r.add_argument("--scan-out", metavar="FILE",
+                   help="phased C1/C2: run only the scanner, save findings here, skip the model")
+    r.add_argument("--scan-in", metavar="FILE",
+                   help="phased C1/C2: skip the scanner, triage findings loaded from here")
+    # --- output ------------------------------------------------------------
+    r.add_argument("-o", "--output", metavar="FILE", help="write the scorecard JSON here")
+    r.add_argument("--findings-out", metavar="FILE",
+                   help="write raw normalized findings JSON (for FP/FN audit)")
+    # --- resume / display --------------------------------------------------
+    r.add_argument("--checkpoint", metavar="FILE",
+                   help="resume from / write to this checkpoint (default: runs/checkpoint-*.json)")
+    r.add_argument("--fresh", action="store_true",
+                   help="ignore any existing checkpoint and re-run every condition")
     r.add_argument("--plain", action="store_true", help="disable colored/animated output")
-    r.add_argument("--debug", action="store_true", help="re-raise condition errors (don't capture)")
+    r.add_argument("--debug", action="store_true",
+                   help="re-raise condition errors instead of capturing them")
     r.set_defaults(func=_cmd_run)
     return p
 
