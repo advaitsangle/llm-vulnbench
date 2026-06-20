@@ -27,12 +27,12 @@ def test_total_latency_is_at_least_model_latency(tmp_path):
 
 
 def test_debug_reraises_instead_of_capturing(tmp_path):
-    target = _benchmark(tmp_path)
-    # A2 is a stub that raises NotImplementedError.
-    with pytest.raises(NotImplementedError):
-        run_one(target, "A2", model=MockBackend(), debug=True)
+    # B1 without a source path fails validation (raises ValueError).
+    target = Target("nosrc", TargetKind.BENCHMARK, ground_truth=str(tmp_path / "gt.csv"))
+    with pytest.raises(ValueError):
+        run_one(target, "B1", debug=True)
     # Without debug, the error is captured into the record.
-    record, _ = run_one(target, "A2", model=MockBackend(), debug=False)
+    record, _ = run_one(target, "B1", debug=False)
     assert record.error is not None
 
 

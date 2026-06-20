@@ -4,7 +4,6 @@ import pytest
 
 from vulnbench.conditions import REGISTRY, get_condition
 from vulnbench.conditions.base import Condition, ConditionContext
-from vulnbench.conditions.stubs import _Planned
 from vulnbench.corpus import Target, TargetKind
 
 
@@ -26,14 +25,6 @@ def test_get_condition_is_case_insensitive():
 def test_get_unknown_condition_raises():
     with pytest.raises(KeyError):
         get_condition("Z9")
-
-
-def test_planned_stubs_raise_not_implemented():
-    target = Target(name="t", kind=TargetKind.REALISTIC, source_path="/tmp")
-    for cls in REGISTRY.values():
-        if issubclass(cls, _Planned):
-            with pytest.raises(NotImplementedError):
-                cls().run(target, ConditionContext())
 
 
 def test_model_requiring_conditions_validate_model_presence():

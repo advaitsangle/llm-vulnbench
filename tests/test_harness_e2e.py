@@ -52,8 +52,9 @@ def test_b3_with_scripted_model_detects_real_case(tmp_path):
     assert record.metrics["tn"] == 1
 
 
-def test_planned_stub_error_is_captured_not_raised(tmp_path):
-    target = _make_benchmark(tmp_path)
-    record, _ = run_one(target, "A2", model=MockBackend())  # A2 is still a stub
+def test_condition_error_is_captured_not_raised(tmp_path):
+    # A validation failure (B1 with no source) becomes a recorded error, not a crash.
+    target = Target("nosrc", TargetKind.BENCHMARK)
+    record, _ = run_one(target, "B1", model=MockBackend())
     assert record.error is not None
-    assert "not implemented" in record.error.lower()
+    assert "source_path" in record.error
