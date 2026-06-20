@@ -102,7 +102,7 @@ def run_one(
         return record, []
 
     wall = time.perf_counter() - start
-    metrics = _score(target, result.findings, ground_truth_cache)
+    metrics = _score(target, result.findings, ground_truth_cache, result.scored_cases)
     record = RunRecord(
         target=target.name,
         condition=condition_id,
@@ -136,13 +136,23 @@ def _load_ground_truth(target: Target, cache: dict | None):
     return gt
 
 
-def _score(target: Target, findings: list[Finding], cache: dict | None = None):
-    """Pick the scorer by target kind; return None if no ground truth is set."""
+def _score(
+    target: Target,
+    findings: list[Finding],
+    cache: dict | None = None,
+    scored_cases: set[str] | None = None,
+):
+    """Pick the scorer by target kind; return None if no ground truth is set.
+
+    ``scored_cases`` (when a condition reports it) restricts Benchmark scoring to
+    the cases the run examined, so partial runs report honest recall rather than
+    counting every un-scanned case as a miss.
+    """
     if not target.ground_truth:
         return None
     gt = _load_ground_truth(target, cache)
     if target.kind is TargetKind.BENCHMARK:
-        return score_benchmark(findings, gt)  # type: ignore[arg-type]
+        return score_benchmark(findings, gt, scored_cases)  # type: ignore[arg-type]
     return score_list(findings, gt)  # type: ignore[arg-type]
 
 

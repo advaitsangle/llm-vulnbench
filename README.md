@@ -17,8 +17,8 @@ See [`claude.md`](claude.md) for the full research design and decisions.
 | B2 | OWASP ZAP only (DAST baseline) | ✅ implemented (Docker stack in `deploy/`) |
 | B3 | LLM only (unaided model reads source) | ✅ implemented |
 | C1 | LLM + Semgrep output (scanner-assisted triage) | ✅ implemented |
-| C2 | LLM + ZAP output (scanner-assisted triage, DAST) | 🚧 stub |
-| C3 | LLM-authored Semgrep rules (LLM improves the tool) | 🚧 stub |
+| C2 | LLM + ZAP output (scanner-assisted triage, DAST) | ✅ implemented |
+| C3 | LLM-authored Semgrep rules (LLM improves the tool) | ✅ implemented |
 | A1 | Multi-agent roles (scan + verify) | 🚧 stub |
 
 Unbuilt conditions are registered so they show in `vulnbench list` and the matrix;
@@ -46,7 +46,7 @@ vulnbench/
   schema.py            common finding schema
   models/              base + ollama + anthropic + registry (mock)
   scanners/            semgrep_runner (B1/C1), zap_runner (B2)
-  conditions/          base, b1, b2, b3, c1, stubs (c2/c3/a1)
+  conditions/          base, b1, b2, b3, c1, c2, c3, stubs (a1)
   corpus/              Target descriptor
   scoring/             metrics, benchmark CSV matcher, listmatch
   harness.py           run_one / run_matrix pipeline (+ provenance)
@@ -91,6 +91,43 @@ back to plain text, and without `rich` it degrades gracefully.
 ╰──────┴──────────┴──────┴────────┴──────┴──────┴─────────┴────────╯
 ```
 
+### Getting the OWASP Benchmark target
+
+The scored backbone is the **OWASP BenchmarkJava** app — 2740 Java test cases, each
+labeled with one CWE as a true/false positive. It isn't vendored (it's large and
+gitignored); clone it into `targets/` once:
+
+```bash
+git clone https://github.com/OWASP-Benchmark/BenchmarkJava targets/BenchmarkJava
+```
+
+That single clone gives you everything the harness needs:
+
+- **Source tree** `targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode/`
+  — the `--source` for the static conditions (B1, B3, C1).
+- **Ground truth** `targets/BenchmarkJava/expectedresults-1.2.csv` — the `--ground-truth`
+  every condition is scored against.
+- **DAST crawl spec** `targets/BenchmarkJava/data/benchmark-crawler-http.xml` — used to
+  seed ZAP for the dynamic conditions (B2, C2).
+
+A scored static run then needs no extra services:
+
+```bash
+.venv/bin/python -m vulnbench.cli run \
+    --condition B1 \
+    --source targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode \
+    --ground-truth targets/BenchmarkJava/expectedresults-1.2.csv \
+    --kind benchmark -o scorecard.json
+```
+
+> Trying it on a slice? Point `--source` at a handful of `BenchmarkTestNNNNN.java`
+> files (or pass `--config '{"max_files": 20}'`). Partial runs are now scored only
+> over the cases they examined, so the recall number stays honest.
+
+For the **dynamic** conditions (B2/C2) the app has to be *running*; the Docker stack
+in [`deploy/`](deploy/README.md) builds the BenchmarkJava WAR and a ZAP daemon for you
+(`docker compose -f deploy/docker-compose.yml up --build`).
+
 ### Real runs
 
 - **Semgrep** (B1/C1): `pipx install semgrep` (or `brew install semgrep`).
@@ -110,7 +147,8 @@ Benchmark's own score = recall − FPR), plus tokens and latency.
 
 ## Status / next
 
-Implemented: B1, B2 (ZAP DAST, with the `deploy/` Docker stack), B3, C1, Benchmark
-scoring, CLI, the model/condition/scoring seams, tests. Next per `claude.md`: C2
-(LLM+ZAP triage), C3 (LLM-authored rules), A1 (multi-agent), and the realistic-app
-vuln-list curation.
+Implemented: B1, B2 (ZAP DAST, with the `deploy/` Docker stack), B3, C1, C2
+(phased scan/triage), C3 (LLM-authored Semgrep rules, phased author/score), Benchmark
+scoring with honest subset scoping, CLI, the model/condition/scoring seams, tests.
+Next per `claude.md`: A1 (multi-agent scan + verify) and the realistic-app vuln-list
+curation.

@@ -23,18 +23,6 @@ class _Planned(Condition):
         )
 
 
-class C3LLMRules(_Planned):
-    id = "C3"
-    label = "LLM-authored Semgrep rules (LLM improves the tool)"
-    needs_model = False  # uses a model offline, not at scored-scan time
-    plan = (
-        "Offline: model writes/refines custom Semgrep YAML rules (validated via "
-        "`semgrep --validate`); then Semgrep runs them deterministically. Author "
-        "rules on a tuning split, score on the held-out split to avoid "
-        "benchmark-gaming. Deterministic + reproducible at scan time."
-    )
-
-
 class A1MultiAgent(_Planned):
     id = "A1"
     label = "Multi-agent roles (scan + verify)"

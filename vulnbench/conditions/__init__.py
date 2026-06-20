@@ -7,7 +7,7 @@ Registry maps the ids used in the proposal / ``claude.md`` to classes:
     B3  LLM only                     (unaided model)        [implemented]
     C1  LLM + Semgrep output         (scanner-assisted)     [implemented]
     C2  LLM + ZAP output             (scanner-assisted)     [implemented]
-    C3  LLM-authored Semgrep rules   (LLM improves tool)    [stub]
+    C3  LLM-authored Semgrep rules   (LLM improves tool)    [implemented]
     A1  Multi-agent roles            (scan + verify)        [stub]
 """
 
@@ -19,7 +19,8 @@ from .b3_llm import B3LLM
 from .base import Condition, ConditionContext, ConditionResult
 from .c1_llm_semgrep import C1LLMSemgrep
 from .c2_llm_zap import C2LLMZap
-from .stubs import A1MultiAgent, C3LLMRules
+from .c3_llm_rules import C3LLMRules
+from .stubs import A1MultiAgent
 
 REGISTRY: dict[str, type[Condition]] = {
     "B1": B1Semgrep,

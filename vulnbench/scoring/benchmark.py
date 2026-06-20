@@ -19,10 +19,11 @@ the same way against the same labels (the methodology linchpin in ``claude.md``)
 from __future__ import annotations
 
 import csv
+import os
 from collections.abc import Iterable
 from dataclasses import dataclass
 
-from ..schema import Finding
+from ..schema import Finding, benchmark_case_of
 from .metrics import Metrics, confusion_to_metrics
 
 
@@ -63,8 +64,38 @@ def _detected_cwes(findings: Iterable[Finding]) -> dict[str, set[int]]:
     return detected
 
 
-def score_benchmark(findings: list[Finding], expected: dict[str, ExpectedCase]) -> Metrics:
-    """Compute the confusion matrix + metrics for one condition's findings."""
+def benchmark_cases_in_tree(root: str) -> set[str]:
+    """The Benchmark test-case ids present as files under a source tree.
+
+    This is the *in-scope* set for a source-based condition: every case whose
+    file the scanner/LLM could have looked at. Pointing ``--source`` at a slice
+    of the Benchmark (a handful of files) yields just those cases, which is what
+    lets :func:`score_benchmark` score a partial run honestly.
+    """
+    cases: set[str] = set()
+    for _dirpath, _dirs, files in os.walk(root):
+        for name in files:
+            tc = benchmark_case_of(name)
+            if tc is not None:
+                cases.add(tc)
+    return cases
+
+
+def score_benchmark(
+    findings: list[Finding],
+    expected: dict[str, ExpectedCase],
+    scanned: set[str] | None = None,
+) -> Metrics:
+    """Compute the confusion matrix + metrics for one condition's findings.
+
+    ``scanned`` restricts scoring to the test cases the condition actually
+    examined. Without it, a subset run (``max_files``, or a sliced ``--source``)
+    counts every un-scanned real case as a false negative — burying recall and
+    making partial runs look far worse than they are. ``None`` means a full sweep
+    where every case was in scope (the historical behaviour).
+    """
+    if scanned is not None:
+        expected = {tc: exp for tc, exp in expected.items() if tc in scanned}
     detected = _detected_cwes(findings)
     tp = fp = fn = tn = 0
     for tc, exp in expected.items():

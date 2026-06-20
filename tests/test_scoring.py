@@ -41,3 +41,20 @@ def test_wrong_cwe_does_not_count_as_detection():
     # Both real cases (00001 wrong-CWE, 00003 unflagged) count as misses.
     assert m.fn == 2
     assert m.fp == 0  # CWE-79 in 00001 is not the expected class, so not an FP either
+
+
+def test_scanned_restricts_scope_for_partial_runs():
+    # A run that only examined case 00001 should be scored over just that case,
+    # not penalized as a miss for the unscanned real case 00003.
+    findings = [_finding("BenchmarkTest00001", 89)]
+    m = score_benchmark(findings, _expected(), scanned={"BenchmarkTest00001"})
+    assert (m.tp, m.fp, m.fn, m.tn) == (1, 0, 0, 0)
+    assert m.recall == 1.0  # without the scope, 00003 would drag recall to 0.5
+
+
+def test_unscanned_real_case_still_counts_without_scope():
+    # Same findings, but no scope -> the unscanned real case 00003 is a miss.
+    findings = [_finding("BenchmarkTest00001", 89)]
+    m = score_benchmark(findings, _expected())
+    assert m.fn == 1
+    assert m.recall == 0.5

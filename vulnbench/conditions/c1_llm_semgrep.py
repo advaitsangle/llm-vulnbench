@@ -17,11 +17,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-from ..corpus import Target
+from ..corpus import Target, TargetKind
 from ..models import Usage
 from ..scanners import run_semgrep
 from ..scanners.semgrep_runner import DEFAULT_RULESET
 from ..schema import Finding, Location
+from ..scoring import benchmark_cases_in_tree
 from .b3_llm import _read
 from .base import ConditionContext, ConditionResult, TriageCondition
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
@@ -38,6 +39,16 @@ class C1LLMSemgrep(TriageCondition):
         # source files referenced by the loaded findings, not target.source_path.
         if not ctx.config.get("scan_in") and not target.source_path:
             raise ValueError(f"C1 needs target.source_path; {target.name} has none.")
+
+    def scope(self, target: Target, ctx: ConditionContext) -> set[str] | None:
+        # Semgrep scanned the whole source tree; the in-scope Benchmark cases are
+        # the files under it. Triage-only (scan_in) can't know what the upstream
+        # scan covered, so it falls back to full-GT scoring.
+        if ctx.config.get("scan_in") or target.kind is not TargetKind.BENCHMARK:
+            return None
+        if not target.source_path:
+            return None
+        return benchmark_cases_in_tree(target.source_path) or None
 
     def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
         ruleset = ctx.config.get("semgrep_ruleset", DEFAULT_RULESET)
