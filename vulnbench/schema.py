@@ -93,6 +93,14 @@ class Location:
 _BENCHMARK_TESTCASE_RE = re.compile(r"BenchmarkTest\d{5}")
 
 
+def benchmark_case_of(text: str | None) -> str | None:
+    """Return the Benchmark test-case id mentioned in ``text`` (path/url), if any."""
+    if not text:
+        return None
+    m = _BENCHMARK_TESTCASE_RE.search(text)
+    return m.group(0) if m else None
+
+
 @dataclass
 class Finding:
     """One normalized vulnerability finding.

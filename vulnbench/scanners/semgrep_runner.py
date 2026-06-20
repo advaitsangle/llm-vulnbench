@@ -37,6 +37,32 @@ def _resolve_semgrep() -> str | None:
     candidate = os.path.join(os.path.dirname(sys.executable), "semgrep")
     return candidate if os.path.exists(candidate) else None
 
+
+def _require_semgrep() -> str:
+    """Resolve semgrep or raise an actionable install hint."""
+    semgrep_bin = _resolve_semgrep()
+    if semgrep_bin is None:
+        raise FileNotFoundError(
+            "semgrep not found on PATH or next to the Python interpreter. "
+            "Install with `pip install semgrep` (into this venv), "
+            "`pipx install semgrep`, or `brew install semgrep`, then re-run."
+        )
+    return semgrep_bin
+
+
+def validate_rules(rules_path: str, timeout: float = 60.0) -> tuple[bool, str]:
+    """Run ``semgrep --validate`` on a rules file.
+
+    Returns ``(ok, message)``. Used by C3 to check that LLM-authored Semgrep YAML
+    is syntactically valid *before* it is run as a scored scanner — a malformed
+    rule would otherwise crash the scan or, worse, silently match nothing.
+    """
+    semgrep_bin = _require_semgrep()
+    cmd = [semgrep_bin, "--validate", "--config", rules_path]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    message = (proc.stderr or proc.stdout).strip()
+    return proc.returncode == 0, message
+
 _CWE_RE = re.compile(r"CWE-(\d+)", re.IGNORECASE)
 
 #: Frozen default ruleset for the B1 baseline. Documented and version-pinned in
@@ -111,13 +137,7 @@ def run_semgrep(
     Raises ``FileNotFoundError`` with an install hint if Semgrep is absent so the
     failure is actionable rather than a bare ``No such file``.
     """
-    semgrep_bin = _resolve_semgrep()
-    if semgrep_bin is None:
-        raise FileNotFoundError(
-            "semgrep not found on PATH or next to the Python interpreter. "
-            "Install with `pip install semgrep` (into this venv), "
-            "`pipx install semgrep`, or `brew install semgrep`, then re-run."
-        )
+    semgrep_bin = _require_semgrep()
     cmd = [semgrep_bin, "--config", config, "--json", "--quiet", target_path]
     if extra_args:
         cmd[1:1] = extra_args

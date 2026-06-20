@@ -12,7 +12,7 @@ import os
 
 from ..corpus import Target
 from ..models import Usage
-from ..schema import Finding, Location
+from ..schema import Finding, Location, benchmark_case_of
 from .base import Condition, ConditionContext, ConditionResult
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
 
@@ -39,7 +39,11 @@ class B3LLM(Condition):
         usage = Usage()
         scanned = 0
         truncated: list[str] = []
+        scored_cases: set[str] = set()
         for path in _iter_source_files(target.source_path, max_files):
+            tc = benchmark_case_of(path)
+            if tc is not None:
+                scored_cases.add(tc)  # in scope even if the model finds nothing in it
             code, was_truncated = _read(path, max_bytes)
             if not code:
                 continue
@@ -67,6 +71,8 @@ class B3LLM(Condition):
                 "truncated_files": len(truncated),
                 "max_file_bytes": max_bytes,
             },
+            # Score only over what we actually looked at (respects max_files).
+            scored_cases=scored_cases or None,
         )
 
 

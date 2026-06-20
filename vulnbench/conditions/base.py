@@ -34,6 +34,10 @@ class ConditionResult:
     usage: Usage = field(default_factory=Usage)
     #: Diagnostics for the run log (commands issued, prompt ids, agent steps...).
     trace: dict = field(default_factory=dict)
+    #: Benchmark test-case ids this run actually examined, so a partial run is
+    #: scored only over what it looked at. ``None`` means a full sweep (score
+    #: against every case). Only consumed by the Benchmark scorer.
+    scored_cases: set[str] | None = None
 
 
 class Condition(ABC):
@@ -91,6 +95,15 @@ class TriageCondition(Condition):
         """Phase 2: have the model triage the scanner's findings."""
         ...
 
+    def scope(self, target: Target, ctx: ConditionContext) -> set[str] | None:
+        """Benchmark test cases this run examined, for honest subset scoring.
+
+        Default ``None`` scores against the full ground truth. Subclasses whose
+        scan covers a knowable slice (e.g. C1's Semgrep over a source tree)
+        override this; see :attr:`ConditionResult.scored_cases`.
+        """
+        return None
+
     def _scan_only(self, ctx: ConditionContext) -> bool:
         """True when configured to scan and stop (no triage, no model)."""
         return bool(ctx.config.get("scan_out")) and not ctx.config.get("scan_in")
@@ -114,8 +127,11 @@ class TriageCondition(Condition):
             return ConditionResult(
                 findings=scanner_findings,
                 trace={**trace, "phase": "scan", "scan_out": scan_out},
+                scored_cases=self.scope(target, ctx),
             )
 
         result = self.triage(scanner_findings, target, ctx)
         result.trace = {**trace, **result.trace, "phase": "triage" if scan_in else "full"}
+        if result.scored_cases is None:
+            result.scored_cases = self.scope(target, ctx)
         return result
