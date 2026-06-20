@@ -1,7 +1,7 @@
 import pytest
 
 from vulnbench.models import Usage, build_backend
-from vulnbench.models.registry import MockBackend
+from vulnbench.models import MockBackend
 
 
 def test_build_mock():
