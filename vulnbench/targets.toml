@@ -1,0 +1,44 @@
+# Optional vulnerable web-app testing suite for vulnbench.
+#
+# Each [[app]] is shallow-cloned into ../targets/<path>, which is gitignored — so
+# these apps never ship with the vulnbench repo; a user opts in via `vulnbench targets`.
+# Clones track upstream: `vulnbench targets --update` pulls the latest version of each.
+#
+# To add an app: append an [[app]] block and re-run `vulnbench targets`. Nothing else
+# in the code needs to change — this file IS the list of options.
+
+[[app]]
+key = "juice-shop"
+name = "OWASP Juice Shop"
+repo = "https://github.com/juice-shop/juice-shop.git"
+path = "juice-shop"
+language = "JavaScript/TypeScript"
+realistic = true
+description = "Modern intentionally-insecure SPA; rich documented challenge catalog (ground truth)."
+
+[[app]]
+key = "dvwa"
+name = "DVWA"
+repo = "https://github.com/digininja/DVWA.git"
+path = "DVWA"
+language = "PHP"
+realistic = true
+description = "Damn Vulnerable Web Application; classic per-vuln training app with severity levels."
+
+[[app]]
+key = "webgoat"
+name = "OWASP WebGoat"
+repo = "https://github.com/WebGoat/WebGoat.git"
+path = "WebGoat"
+language = "Java (Spring)"
+realistic = true
+description = "Realistic Spring app; documented per-lesson vulns. Complements synthetic BenchmarkJava."
+
+[[app]]
+key = "benchmark"
+name = "OWASP BenchmarkJava"
+repo = "https://github.com/OWASP-Benchmark/BenchmarkJava.git"
+path = "BenchmarkJava"
+language = "Java (synthetic)"
+realistic = false
+description = "2740 synthetic test cases with a labelled CSV; the primary quantitative corpus."
