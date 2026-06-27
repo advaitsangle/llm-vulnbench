@@ -1,7 +1,6 @@
 import pytest
 
-from vulnbench.models import Usage, build_backend
-from vulnbench.models import MockBackend
+from vulnbench.models import MockBackend, Usage, build_backend
 
 
 def test_build_mock():
@@ -12,14 +11,14 @@ def test_build_mock():
 
 def test_build_local_does_not_touch_network():
     # Constructing an Ollama backend must not require a running daemon.
-    b = build_backend("local:qwen3-coder:14b")
-    assert b.name == "local:qwen3-coder:14b"
-    assert b.model == "qwen3-coder:14b"
+    b = build_backend("local:qwen2.5-coder:14b")
+    assert b.name == "local:qwen2.5-coder:14b"
+    assert b.model == "qwen2.5-coder:14b"
 
 
 def test_build_local_default_model():
     b = build_backend("local")
-    assert b.model == "qwen3-coder:14b"
+    assert b.model == "qwen2.5-coder:14b"
 
 
 def test_build_unknown_provider_raises():
