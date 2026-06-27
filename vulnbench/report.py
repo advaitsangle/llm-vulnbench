@@ -7,8 +7,9 @@ goes to JSON files. It uses ``rich`` when available and degrades to plain text
 otherwise, so the core harness never hard-depends on it (install with
 ``pip install 'vulnbench[pretty]'``).
 
-The palette is sampled from the project's pixel-art mascot, so the banner and the
-CLI accents share one set of colors.
+The shared look (palette, mascot banner, rich detection) lives in :mod:`vulnbench.theme`
+so every command renders as the same tool; this module only adds the run-specific
+progress bar and metrics table.
 """
 
 from __future__ import annotations
@@ -16,12 +17,13 @@ from __future__ import annotations
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
+from .theme import PALETTE, make_console, metric_color, print_banner
+
 if TYPE_CHECKING:
     from .harness import RunRecord
 
 try:  # rich is an optional extra
     from rich.box import ROUNDED
-    from rich.console import Console
     from rich.panel import Panel
     from rich.progress import (
         BarColumn,
@@ -33,96 +35,8 @@ try:  # rich is an optional extra
     )
     from rich.table import Table
     from rich.text import Text
-
-    _RICH = True
 except ImportError:  # pragma: no cover - exercised only without the extra
-    _RICH = False
-
-
-def rich_available() -> bool:
-    return _RICH
-
-
-# Palette sampled from the mascot sprite (a Stardew-style pixel character on an
-# amber field). These exact hexes theme both the banner and the CLI accents.
-PALETTE = {
-    "amber": "#e5a23a",     # accent dot
-    "blue": "#3d5cc8",      # wordmark / progress bar
-    "navy": "#1a2a66",      # table borders
-    "pink": "#e64c72",      # heart
-    "pinkhi": "#f4a7c0",    # heart highlight / tagline
-    "magenta": "#9e3566",   # heart outline
-}
-
-# A pixel heart; rows are rendered two-at-a-time with the upper-half-block trick
-# so the art stays compact (6 rows -> 3 terminal lines).
-_HEART = [
-    ".mm.mm.",
-    "mpphppm",
-    "mpppppm",
-    ".mpppm.",
-    "..mpm..",
-    "...m...",
-]
-_GLYPHS = {"m": "magenta", "p": "pink", "h": "pinkhi"}
-
-
-def _color_of(glyph: str) -> str | None:
-    return PALETTE.get(_GLYPHS.get(glyph, ""))
-
-
-def _render_sprite(grid: list[str]):  # -> list[Text]
-    """Render a pixel grid into half-height terminal lines via ``▀``/``▄``."""
-    width = max(len(r) for r in grid)
-    rows = [r.ljust(width) for r in grid]
-    if len(rows) % 2:
-        rows.append(" " * width)
-    lines = []
-    for i in range(0, len(rows), 2):
-        line = Text()
-        for top, bot in zip(rows[i], rows[i + 1], strict=True):
-            tc, bc = _color_of(top), _color_of(bot)
-            if tc and bc:
-                line.append("▀", style=f"{tc} on {bc}")
-            elif tc:
-                line.append("▀", style=tc)
-            elif bc:
-                line.append("▄", style=bc)
-            else:
-                line.append(" ")
-        lines.append(line)
-    return lines
-
-
-def _banner_text() -> Text:
-    """A pixel heart with the colored ``vulnbench`` wordmark beside it."""
-    heart = _render_sprite(_HEART)  # 3 lines
-    wordmark = [
-        Text(),
-        Text.assemble(
-            ("vulnbench", f"bold {PALETTE['blue']}"),
-            ("  ·  ", PALETTE["amber"]),
-            ("LLM-augmented web vulnerability detection", PALETTE["pinkhi"]),
-        ),
-        Text(),
-    ]
-    out = Text()
-    for i, hline in enumerate(heart):
-        out.append("  ")
-        out.append_text(hline)
-        out.append("   ")
-        out.append_text(wordmark[i])
-        out.append("\n")
-    return out
-
-
-# F1 thresholds for the green / yellow / red color bands.
-def _metric_color(value: float) -> str:
-    if value >= 0.7:
-        return "bold green"
-    if value >= 0.5:
-        return "yellow"
-    return "red"
+    pass
 
 
 class _Tracker:
@@ -156,15 +70,12 @@ class Reporter:
     """Renders run progress and a final summary. Pretty when rich is present."""
 
     def __init__(self, pretty: bool = True) -> None:
-        self.pretty = pretty and _RICH
-        self.console = Console() if self.pretty else None
+        self.console = make_console(pretty)
+        self.pretty = self.console is not None
 
     def banner(self) -> None:
         """Print the mascot banner once at the top of a run."""
-        if self.pretty:
-            self.console.print(_banner_text())
-        else:
-            print("vulnbench — LLM-augmented web vulnerability detection")
+        print_banner(self.console)
 
     @contextmanager
     def track(self, total: int):
@@ -198,7 +109,7 @@ class Reporter:
             return
         m = record.metrics
         if m:
-            f1 = Text(f"F1 {m['f1']:.2f}", style=_metric_color(m["f1"]))
+            f1 = Text(f"F1 {m['f1']:.2f}", style=metric_color(m["f1"]))
             self.console.print(
                 f"  [green]✓[/green] {tag}[bold]{record.condition}[/bold]  "
                 f"{record.n_findings} findings  ",
@@ -250,7 +161,7 @@ class Reporter:
                     str(r.n_findings),
                     f"{m['precision']:.2f}",
                     f"{m['recall']:.2f}",
-                    Text(f"{m['f1']:.2f}", style=_metric_color(m["f1"])),
+                    Text(f"{m['f1']:.2f}", style=metric_color(m["f1"])),
                     f"{m['fpr']:.2f}",
                     f"{r.seconds:.1f}s",
                     str(r.input_tokens + r.output_tokens),
