@@ -15,7 +15,7 @@ Run the SAST baseline on a Benchmark checkout and score it::
 
 Run the scanner-assisted LLM cell with the scored local model::
 
-    vulnbench run --condition C1 --source ./src --model local:qwen3-coder:14b \\
+    vulnbench run --condition C1 --source ./src --model local:qwen2.5-coder:14b \\
         --ground-truth ./expectedresults-1.2.csv --kind benchmark
 
 Sweep several conditions and write a scorecard::
@@ -37,6 +37,7 @@ from .harness import run_one
 from .models import build_backend
 from .report import Reporter
 from .schema import dump_findings
+from .suite import cmd_targets
 
 
 class _BannerParser(argparse.ArgumentParser):
@@ -141,14 +142,15 @@ conditions:
 
 models (--model):
   mock                       offline, deterministic; no server needed
-  local:<name>               an Ollama model, e.g. local:qwen3-coder:14b
+  local:<name>               an Ollama model, e.g. local:qwen2.5-coder:14b
   api:anthropic:<name>       an Anthropic model, e.g. api:anthropic:claude-opus-4-8
 
 examples:
   vulnbench list
+  vulnbench targets                 # opt-in: pick vulnerable apps to clone
   vulnbench run --condition B1 --source ./src --ground-truth gt.csv
   vulnbench run --condition B3 C1 --source ./src --ground-truth gt.csv \\
-                --model local:qwen3-coder:14b -o card.json
+                --model local:qwen2.5-coder:14b -o card.json
 """
 
 _RUN_EPILOG = """\
@@ -166,7 +168,7 @@ examples:
 
   # scanner-assisted LLM triage, write scorecard + findings audit
   vulnbench run --condition C1 --source ./src --ground-truth gt.csv \\
-                --model local:qwen3-coder:14b -o card.json --findings-out fn.json
+                --model local:qwen2.5-coder:14b -o card.json --findings-out fn.json
 """
 
 
@@ -178,10 +180,29 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=_TOP_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    sub = p.add_subparsers(dest="command", required=True, metavar="{list,run}",
+    sub = p.add_subparsers(dest="command", required=True, metavar="{list,run,targets}",
                            parser_class=_BannerParser)
 
     sub.add_parser("list", help="print the condition matrix and exit").set_defaults(func=_cmd_list)
+
+    t = sub.add_parser(
+        "targets",
+        help="opt-in: download/update the optional vulnerable-app testing suite",
+        description="Interactively pick vulnerable web apps to clone into the gitignored "
+        "targets/ directory (arrow keys + space to select). They never ship with the repo; "
+        "this is how a user opts in. Re-run with --update to pull each to latest upstream.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    t.add_argument("--list", action="store_true", help="list available apps and exit")
+    t.add_argument("--path", metavar="KEY",
+                   help="print the resolved directory for one app and exit (for scripting)")
+    t.add_argument("--all", action="store_true", help="select every app (skip the menu)")
+    t.add_argument("--update", action="store_true",
+                   help="pull already-installed selections to the latest upstream version")
+    t.add_argument("--yes", action="store_true",
+                   help="skip confirmation prompts (assume yes)")
+    t.add_argument("--plain", action="store_true", help="disable colored output / banner")
+    t.set_defaults(func=cmd_targets)
 
     r = sub.add_parser(
         "run",
@@ -228,7 +249,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except KeyboardInterrupt:
+        # Clean Ctrl-C: no traceback, conventional 130 exit code.
+        print("\nInterrupted.", file=sys.stderr)
+        return 130
 
 
 if __name__ == "__main__":

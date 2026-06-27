@@ -26,6 +26,9 @@ vulnbench = "vulnbench.cli:main"
 where = ["."]
 include = ["vulnbench*"]
 
+[tool.setuptools.package-data]
+vulnbench = ["targets.toml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
