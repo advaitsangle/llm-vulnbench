@@ -36,7 +36,7 @@ a single `--model` argument:
 
 ```
 --model mock                              # offline, deterministic (no server)
---model local:qwen3-coder:14b            # any Ollama model, local
+--model local:qwen2.5-coder:14b            # any Ollama model, local
 --model api:anthropic:claude-opus-4-8    # any Anthropic model (frontier ceiling)
 ```
 
@@ -86,8 +86,11 @@ vulnbench/
   scoring/             metrics, benchmark CSV matcher, listmatch
   harness.py           run_one / run_matrix pipeline (+ provenance)
   checkpoint.py        crash-safe resume between runs
-  report.py            banner + progress bar + summary table (rich, optional)
-  cli.py               `vulnbench` entry point
+  theme.py             shared CLI look: palette, mascot banner, rich/ANSI color
+  report.py            progress bar + summary table (rich, optional)
+  suite.py             `targets` manager: catalog + registry + point-or-install
+  targets.toml         the test-app catalog (the editable list of options)
+  cli.py               `vulnbench` entry point (list / run / targets)
 ```
 
 ## Quick start
@@ -108,6 +111,39 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[dev,pretty]'
 .venv/bin/python -m pytest -q
 .venv/bin/ruff check vulnbench tests
 ```
+
+### Install it as a command
+
+To get a `vulnbench` command on your `PATH` (instead of `python -m vulnbench.cli`),
+install it with [pipx](https://pipx.pypa.io) — an isolated app install that works
+even on a PEP-668 "externally managed" system Python:
+
+```bash
+pipx install -e '.[pretty]'                       # from a local checkout
+# or, once the repo is public:
+pipx install 'git+https://github.com/advaitsangle/vulnbench.git'
+
+vulnbench list                                    # now works from anywhere
+```
+
+Every example below then drops the `.venv/bin/python -m vulnbench.cli` prefix and
+just says `vulnbench …`.
+
+### Quality checks (tests, lint, review)
+
+```bash
+.venv/bin/python -m pytest -q          # offline test suite
+.venv/bin/ruff check vulnbench tests   # lint (line-length 100, import order, …)
+```
+
+This repo is developed with Claude Code; the code-quality passes are **slash-commands**
+you run inside a Claude Code session (not shell scripts):
+
+| Command | What it does |
+|---------|--------------|
+| `/simplify` | reuse / simplification / efficiency cleanup of the current diff, then applies fixes |
+| `/code-review` | reviews the diff for correctness bugs (`--fix` to apply, `--comment` to post on a PR) |
+| `/security-review` | security review of the pending changes |
 
 ### Output: highlight on screen, detail in files
 
@@ -140,18 +176,50 @@ finished and continues from where it stopped:
 # interrupted after B1, B3 finished? just run it again — B1/B3 are reused,
 # only C1 actually re-runs:
 .venv/bin/python -m vulnbench.cli run --condition B1 B3 C1 --source ./src \
-    --ground-truth ./expectedresults-1.2.csv --model local:qwen3-coder:14b
+    --ground-truth ./expectedresults-1.2.csv --model local:qwen2.5-coder:14b
 ```
 
 The checkpoint is keyed on the run inputs (target, model, config, ground truth),
 so changing any of them starts fresh automatically. Use `--fresh` to force a
 clean run, or `--checkpoint PATH` to choose where it's stored.
 
+### Test apps: the `targets` manager
+
+The vulnerable apps under test are **never shipped with the repo** (they're large
+and live in the gitignored `targets/`). `vulnbench targets` is an opt-in manager
+for them — an arrow-key menu (↑/↓ move, space toggle, enter confirm, `q`/Ctrl-C
+cancel) over a catalog defined in [`vulnbench/targets.toml`](vulnbench/targets.toml):
+
+```bash
+vulnbench targets            # interactive: pick apps, then point-or-install each
+vulnbench targets --list     # show the catalog + where each app is linked
+vulnbench targets --all      # select everything (skip the menu)
+vulnbench targets --update   # pull already-linked git clones to latest upstream
+```
+
+Each app's location is a **reference, not a fixed path** (stored in the gitignored
+`targets/registry.json`). For an app that isn't linked yet you choose, per app:
+
+- **point** at a copy you already have sitting around (any directory — no clone), or
+- **install** a fresh shallow clone into a location you pick (default `targets/<name>`).
+
+A clone already at the default `targets/<name>` is auto-recognized, so existing
+checkouts keep working. To wire a linked app straight into a run, ask for its path:
+
+```bash
+vulnbench run --condition B1 \
+    --source "$(vulnbench targets --path juice-shop)" \
+    --ground-truth ./vulns.json --kind realistic
+```
+
+Add an app by appending an `[[app]]` block to `targets.toml` — no code changes.
+The catalog ships with Juice Shop, DVWA, WebGoat, and OWASP BenchmarkJava.
+
 ### Getting an OWASP Benchmark target
 
 The reference scored target is the **OWASP BenchmarkJava** app — 2740 Java test
-cases, each labeled with one CWE as a true/false positive. It isn't vendored (it's
-large and gitignored); clone it into `targets/` once:
+cases, each labeled with one CWE as a true/false positive. `vulnbench targets`
+can fetch it (it's in the catalog), or clone it into `targets/` directly:
 
 ```bash
 git clone https://github.com/OWASP-Benchmark/BenchmarkJava targets/BenchmarkJava
