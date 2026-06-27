@@ -2,7 +2,7 @@
 
 Spec grammar::
 
-    local:<ollama-model>        e.g. local:qwen3-coder:14b   (scored default)
+    local:<ollama-model>        e.g. local:qwen2.5-coder:14b   (scored default)
     api:anthropic:<model>       e.g. api:anthropic:claude-opus-4-8  (ceiling)
     mock                        a deterministic offline backend for tests/dev
 """
@@ -23,7 +23,7 @@ def build_backend(spec: str) -> ModelBackend:
 
     kind, _, rest = spec.partition(":")
     if kind == "local":
-        model = rest or "qwen3-coder:14b"
+        model = rest or "qwen2.5-coder:14b"
         return OllamaBackend(model=model)
     if kind == "api":
         provider, _, model = rest.partition(":")

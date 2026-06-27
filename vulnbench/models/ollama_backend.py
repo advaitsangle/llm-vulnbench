@@ -21,7 +21,7 @@ class OllamaBackend(ModelBackend):
 
     def __init__(
         self,
-        model: str = "qwen3-coder:14b",
+        model: str = "qwen2.5-coder:14b",
         host: str = "http://localhost:11434",
         temperature: float = 0.1,
         timeout: float = 600.0,

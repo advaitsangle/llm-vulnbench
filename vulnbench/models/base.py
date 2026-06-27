@@ -71,7 +71,7 @@ class ModelBackend(ABC):
     latency onto usage so every caller measures it the same way.
     """
 
-    #: Identifier used in scorecards, e.g. ``local:qwen3-coder:14b``.
+    #: Identifier used in scorecards, e.g. ``local:qwen2.5-coder:14b``.
     name: str = "unknown"
     #: Low temperature by default: webllm measured 0.7 -> 31% fabrication,
     #: 0.1 -> 12%. Detection wants determinism, not creativity.
