@@ -98,9 +98,22 @@ class Condition(ABC):
     needs_model: bool = False
     needs_source: bool = False
     needs_url: bool = False
+    #: External dependencies, by key into :data:`vulnbench.tools.TOOLS` (e.g. ``"semgrep"``).
+    #: A front-end preflights these so a missing scanner surfaces as a prompt, not as a
+    #: traceback thirty minutes into a sweep. Keys, not objects, so this stays import-light.
+    tools: tuple[str, ...] = ()
     #: Config options this condition understands. A subclass declares only its *own*;
     #: :meth:`all_knobs` merges in those inherited from its bases.
     knobs: tuple[Knob, ...] = ()
+
+    @classmethod
+    def all_tools(cls) -> tuple[str, ...]:
+        """Tool keys this condition needs, including any inherited from its bases."""
+        merged: dict[str, None] = {}
+        for klass in reversed(cls.__mro__):
+            for key in vars(klass).get("tools", ()):
+                merged[key] = None
+        return tuple(merged)
 
     @classmethod
     def all_knobs(cls) -> tuple[Knob, ...]:

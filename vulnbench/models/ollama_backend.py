@@ -15,6 +15,10 @@ from typing import Any
 
 from .base import Completion, ModelBackend, ToolCall, ToolSpec, Usage
 
+#: Where a stock Ollama daemon listens. Shared with the tool preflight and the
+#: wizard's model discovery so the address is stated once.
+DEFAULT_HOST = "http://localhost:11434"
+
 
 class OllamaBackend(ModelBackend):
     """Talks to ``/api/chat`` on a local Ollama daemon."""
@@ -22,7 +26,7 @@ class OllamaBackend(ModelBackend):
     def __init__(
         self,
         model: str = "qwen2.5-coder:14b",
-        host: str = "http://localhost:11434",
+        host: str = DEFAULT_HOST,
         temperature: float = 0.1,
         timeout: float = 600.0,
     ) -> None:

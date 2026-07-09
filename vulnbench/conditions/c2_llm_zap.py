@@ -36,6 +36,7 @@ class C2LLMZap(TriageCondition):
     # The scan phase needs the running app; triage-only (scan_in) does not, which
     # TriageCondition.validate handles.
     needs_url = True
+    tools = ("zap",)
     knobs = ZAP_KNOBS
 
     def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
