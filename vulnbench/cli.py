@@ -38,6 +38,7 @@ from .models import build_backend
 from .report import Reporter
 from .schema import dump_findings
 from .suite import cmd_targets
+from .wizard import cmd_wizard
 
 
 class _BannerParser(argparse.ArgumentParser):
@@ -146,6 +147,7 @@ models (--model):
   api:anthropic:<name>       an Anthropic model, e.g. api:anthropic:claude-opus-4-8
 
 examples:
+  vulnbench                         # interactive: build a comparative sweep
   vulnbench list
   vulnbench targets                 # opt-in: pick vulnerable apps to clone
   vulnbench run --condition B1 --source ./src --ground-truth gt.csv
@@ -176,11 +178,13 @@ def build_parser() -> argparse.ArgumentParser:
     p = _BannerParser(
         prog="vulnbench",
         description="Benchmark LLM-augmented web vulnerability detection: run SAST, DAST, "
-        "LLM, and combined conditions on a target and score them the same way.",
+        "LLM, and combined conditions on a target and score them the same way. "
+        "With no subcommand, starts an interactive session that builds a comparative run.",
         epilog=_TOP_EPILOG,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    sub = p.add_subparsers(dest="command", required=True, metavar="{list,run,targets}",
+    # Optional: no subcommand launches the wizard (see main()).
+    sub = p.add_subparsers(dest="command", metavar="{list,run,targets}",
                            parser_class=_BannerParser)
 
     sub.add_parser("list", help="print the condition matrix and exit").set_defaults(func=_cmd_list)
@@ -249,6 +253,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    if args.command is None:
+        # Bare `vulnbench` (or just --fresh): the interactive session.
+        args.func = cmd_wizard
     try:
         return args.func(args)
     except KeyboardInterrupt:

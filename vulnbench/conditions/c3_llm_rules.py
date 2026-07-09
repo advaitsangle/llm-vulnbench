@@ -112,6 +112,7 @@ class C3LLMRules(Condition):
     label = "LLM-authored Semgrep rules (LLM improves the tool)"
     needs_model = True  # to author; the rules_in (score-only) phase overrides this
     needs_source = True
+    tools = ("semgrep",)  # the authored rules are still executed by Semgrep
     knobs = (
         Knob("author_files", "int", DEFAULT_AUTHOR_FILES,
              help="source files shown to the model as examples when authoring rules"),

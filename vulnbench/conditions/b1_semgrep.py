@@ -14,6 +14,7 @@ class B1Semgrep(Condition):
     label = "Semgrep only (SAST baseline)"
     needs_model = False
     needs_source = True
+    tools = ("semgrep",)
     knobs = (
         Knob("semgrep_ruleset", "str", DEFAULT_RULESET,
              help="Semgrep config to scan with (registry id like p/java, or a rules file)"),

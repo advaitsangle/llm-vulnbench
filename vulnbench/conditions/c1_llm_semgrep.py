@@ -35,6 +35,7 @@ class C1LLMSemgrep(TriageCondition):
     # Triage-only (scan_in) reads the source files referenced by the loaded findings,
     # not target.source_path; TriageCondition.validate relaxes this requirement there.
     needs_source = True
+    tools = ("semgrep",)
     knobs = (
         B1Semgrep.knob("semgrep_ruleset"),  # C1's scan phase *is* B1's scan
         Knob("max_file_bytes", "int", 60_000,

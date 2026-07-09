@@ -60,6 +60,7 @@ class B2Zap(Condition):
     label = "OWASP ZAP only (DAST baseline)"
     needs_model = False
     needs_url = True
+    tools = ("zap",)
     knobs = ZAP_KNOBS
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
