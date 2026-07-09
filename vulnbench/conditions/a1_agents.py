@@ -28,15 +28,7 @@ turns that filtering on — for realistic apps where reading every file is waste
 the default 0.0 deep-dives everything, isolating the role-decomposition effect from
 the sampling effect.
 
-Config knobs::
-
-    max_files         int    cap on files surveyed (reproducible sorted subset)
-    max_file_bytes    int    full-read cap for the hunter/verifier (default 60k)
-    triage_head_bytes int    bytes of each file the scout sees (default 1500)
-    triage_batch      int    files per scout call (default 10)
-    min_risk          float  deep-dive only files the scout scored >= this (0 = all)
-    triage            bool    run the scout at all (default True; off = B3-like + verify)
-    verify            bool    run the verifier (default True; off = no FP filter)
+Config knobs are declared in :attr:`A1MultiAgent.knobs`.
 """
 
 from __future__ import annotations
@@ -47,8 +39,8 @@ from collections import defaultdict
 from ..corpus import Target
 from ..models import Usage
 from ..schema import Finding, Location, Verdict, benchmark_case_of
-from .b3_llm import _iter_source_files, _read
-from .base import Condition, ConditionContext, ConditionResult
+from .b3_llm import SCAN_KNOBS, _iter_source_files, _read
+from .base import Condition, ConditionContext, ConditionResult, Knob
 from .llm_common import (
     OUTPUT_CONTRACT,
     SYSTEM_PROMPT,
@@ -100,6 +92,17 @@ class A1MultiAgent(Condition):
     id = "A1"
     label = "Multi-agent roles (scout/hunt/verify)"
     needs_model = True
+    knobs = SCAN_KNOBS + (
+        Knob("triage", "bool", True,
+             help="run the scout role (off = a flat B3-like pass, plus the verifier)"),
+        Knob("verify", "bool", True,
+             help="run the verifier role (off = no false-positive filter)"),
+        Knob("triage_head_bytes", "int", 1500,
+             help="bytes from the head of each file the scout sees"),
+        Knob("triage_batch", "int", 10, help="files per scout call"),
+        Knob("min_risk", "float", 0.0,
+             help="deep-dive only files the scout scored at or above this (0 = all)"),
+    )
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         super().validate(target, ctx)
@@ -108,14 +111,13 @@ class A1MultiAgent(Condition):
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         assert ctx.model is not None
-        cfg = ctx.config
-        max_files = int(cfg.get("max_files", 0)) or None
-        max_bytes = int(cfg.get("max_file_bytes", 60_000))
-        head_bytes = int(cfg.get("triage_head_bytes", 1500))
-        batch = max(1, int(cfg.get("triage_batch", 10)))
-        min_risk = float(cfg.get("min_risk", 0.0))
-        do_triage = bool(cfg.get("triage", True))
-        do_verify = bool(cfg.get("verify", True))
+        max_files = int(self.cfg(ctx, "max_files")) or None
+        max_bytes = int(self.cfg(ctx, "max_file_bytes"))
+        head_bytes = int(self.cfg(ctx, "triage_head_bytes"))
+        batch = max(1, int(self.cfg(ctx, "triage_batch")))
+        min_risk = float(self.cfg(ctx, "min_risk"))
+        do_triage = bool(self.cfg(ctx, "triage"))
+        do_verify = bool(self.cfg(ctx, "verify"))
 
         paths = list(_iter_source_files(target.source_path, max_files))
         # Denominator is every file surveyed — same as B3 at this cap — so skipping

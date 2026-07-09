@@ -1,9 +1,13 @@
 """Cross-checks on the condition registry — a 'different angle' integrity test."""
 
+import inspect
+import re
+from pathlib import Path
+
 import pytest
 
 from vulnbench.conditions import REGISTRY, get_condition
-from vulnbench.conditions.base import Condition, ConditionContext
+from vulnbench.conditions.base import Condition, ConditionContext, Knob, TriageCondition
 from vulnbench.corpus import Target, TargetKind
 
 
@@ -33,3 +37,68 @@ def test_model_requiring_conditions_validate_model_presence():
         if cls.needs_model:
             with pytest.raises(ValueError):
                 cls().validate(target, ConditionContext(model=None))
+
+
+# --- declared knobs -------------------------------------------------------------
+# The wizard renders whatever a condition declares, so these guard the contract that
+# lets a new condition appear in the UI without the UI knowing about it.
+
+def test_knob_names_are_unique_per_condition():
+    for cls in REGISTRY.values():
+        names = [k.name for k in cls.all_knobs()]
+        assert len(names) == len(set(names)), f"{cls.id} declares a duplicate knob"
+
+
+def test_triage_conditions_inherit_phasing_knobs():
+    """scan_out/scan_in come from TriageCondition, not from each subclass restating them."""
+    for cls in REGISTRY.values():
+        if issubclass(cls, TriageCondition):
+            names = {k.name for k in cls.all_knobs()}
+            assert {"scan_out", "scan_in"} <= names, f"{cls.id} lost the phasing knobs"
+            # ...and the subclass itself does not redeclare them.
+            assert not {"scan_out", "scan_in"} & {k.name for k in vars(cls).get("knobs", ())}
+
+
+def test_cfg_prefers_user_config_over_declared_default():
+    cond = get_condition("B3")()
+    assert cond.cfg(ConditionContext(), "max_file_bytes") == 60_000
+    ctx = ConditionContext(config={"max_file_bytes": 5})
+    assert cond.cfg(ctx, "max_file_bytes") == 5
+
+
+def test_cfg_on_undeclared_knob_raises():
+    cond = get_condition("B1")()
+    with pytest.raises(KeyError, match="no knob named"):
+        cond.cfg(ConditionContext(), "not_a_knob")
+
+
+def test_every_cfg_read_names_a_declared_knob():
+    """Catch a condition reading a knob it forgot to declare (its default would vanish)."""
+    seen = 0
+    for cid, cls in REGISTRY.items():
+        src = Path(inspect.getsourcefile(cls)).read_text()
+        declared = {k.name for k in cls.all_knobs()}
+        used = set(re.findall(r"""self\.cfg\(ctx,\s*["'](\w+)["']""", src))
+        seen += len(used)
+        assert used <= declared, f"{cid} reads undeclared knob(s): {sorted(used - declared)}"
+    assert seen, "regex matched nothing — the test would pass vacuously"
+
+
+@pytest.mark.parametrize(
+    ("ktype", "raw", "expected"),
+    [
+        ("int", "12", 12),
+        ("float", "0.5", 0.5),
+        ("bool", "yes", True),
+        ("bool", "off", False),
+        ("str", " p/java ", "p/java"),
+        ("list", "40026, 40012", ["40026", "40012"]),
+    ],
+)
+def test_knob_parse_coerces_user_text(ktype, raw, expected):
+    assert Knob("k", ktype, None).parse(raw) == expected
+
+
+def test_knob_parse_rejects_non_boolean():
+    with pytest.raises(ValueError, match="expected yes/no"):
+        Knob("k", "bool", True).parse("maybe")

@@ -39,7 +39,7 @@ from ..schema import benchmark_case_of
 from ..scoring import benchmark_cases_in_tree
 from ..scoring.owasp_benchmark import load_expected_results
 from .b3_llm import _iter_source_files, _read
-from .base import Condition, ConditionContext, ConditionResult
+from .base import Condition, ConditionContext, ConditionResult, Knob
 
 #: Keep authored YAML off the prompt budget: a few small examples beat one huge file.
 DEFAULT_AUTHOR_FILES = 8
@@ -111,10 +111,22 @@ class C3LLMRules(Condition):
     id = "C3"
     label = "LLM-authored Semgrep rules (LLM improves the tool)"
     needs_model = True  # to author; the rules_in (score-only) phase overrides this
+    knobs = (
+        Knob("author_files", "int", DEFAULT_AUTHOR_FILES,
+             help="source files shown to the model as examples when authoring rules"),
+        Knob("author_max_bytes", "int", DEFAULT_AUTHOR_BYTES,
+             help="bytes read from each example file"),
+        Knob("semgrep_timeout", "float", 1800.0,
+             help="timeout for the Semgrep scan with the authored rules, in seconds"),
+        Knob("rules_out", "path", None, advanced=True,
+             help="author rules, write them here, and stop before scanning"),
+        Knob("rules_in", "path", None, advanced=True,
+             help="skip authoring; scan with the ruleset loaded from here (needs no model)"),
+    )
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         # rules_in is deterministic Semgrep with no model; everything else authors.
-        if not ctx.config.get("rules_in") and ctx.model is None:
+        if not self.cfg(ctx, "rules_in") and ctx.model is None:
             raise ValueError(
                 f"Condition {self.id} requires a model backend (--model) to author "
                 "rules. Pass --config '{\"rules_in\": PATH}' to score an existing "
@@ -124,13 +136,13 @@ class C3LLMRules(Condition):
             raise ValueError(f"C3 needs target.source_path; {target.name} has none.")
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
-        rules_in = ctx.config.get("rules_in")
+        rules_in = self.cfg(ctx, "rules_in")
         if rules_in:
             return self._scan(rules_in, target, ctx, authored_from=None)
 
         rules_text, usage, valid, message = self._author(target, ctx)
 
-        rules_out = ctx.config.get("rules_out")
+        rules_out = self.cfg(ctx, "rules_out")
         if rules_out:  # phase 1: author and stop, no scan
             _write(rules_out, rules_text)
             return ConditionResult(
@@ -171,8 +183,8 @@ class C3LLMRules(Condition):
     ) -> tuple[str, Usage, bool, str]:
         """Have the model write Semgrep YAML from a sample of the source files."""
         assert ctx.model is not None
-        n = int(ctx.config.get("author_files", DEFAULT_AUTHOR_FILES))
-        max_bytes = int(ctx.config.get("author_max_bytes", DEFAULT_AUTHOR_BYTES))
+        n = int(self.cfg(ctx, "author_files"))
+        max_bytes = int(self.cfg(ctx, "author_max_bytes"))
         cwes = self._cwe_by_case(target)
 
         examples: list[str] = []
@@ -212,7 +224,7 @@ class C3LLMRules(Condition):
             target.source_path,
             config=rules_path,
             source_condition=self.id,
-            timeout=float(ctx.config.get("semgrep_timeout", 1800.0)),
+            timeout=float(self.cfg(ctx, "semgrep_timeout")),
         )
         scored_cases = None
         if target.kind is TargetKind.BENCHMARK:

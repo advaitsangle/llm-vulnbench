@@ -13,17 +13,26 @@ import os
 from ..corpus import Target
 from ..models import Usage
 from ..schema import Finding, Location, benchmark_case_of
-from .base import Condition, ConditionContext, ConditionResult
+from .base import Condition, ConditionContext, ConditionResult, Knob
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
 
 #: Source extensions worth scanning; keeps the model off assets and configs.
 CODE_EXTS = {".java", ".py", ".js", ".ts", ".php", ".rb", ".go"}
+
+#: Shared by every condition that walks a source tree file-by-file (B3, A1).
+SCAN_KNOBS = (
+    Knob("max_files", "int", 0,
+         help="cap on source files read (0 = no cap); a reproducible sorted subset"),
+    Knob("max_file_bytes", "int", 60_000,
+         help="truncate each file past this many bytes"),
+)
 
 
 class B3LLM(Condition):
     id = "B3"
     label = "LLM only (unaided)"
     needs_model = True
+    knobs = SCAN_KNOBS
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         super().validate(target, ctx)
@@ -32,8 +41,8 @@ class B3LLM(Condition):
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         assert ctx.model is not None
-        max_files = int(ctx.config.get("max_files", 0)) or None
-        max_bytes = int(ctx.config.get("max_file_bytes", 60_000))
+        max_files = int(self.cfg(ctx, "max_files")) or None
+        max_bytes = int(self.cfg(ctx, "max_file_bytes"))
 
         findings: list[Finding] = []
         usage = Usage()

@@ -17,7 +17,7 @@ from .a1_agents import A1MultiAgent
 from .b1_semgrep import B1Semgrep
 from .b2_zap import B2Zap
 from .b3_llm import B3LLM
-from .base import Condition, ConditionContext, ConditionResult
+from .base import Condition, ConditionContext, ConditionResult, Knob, KnobType
 from .c1_llm_semgrep import C1LLMSemgrep
 from .c2_llm_zap import C2LLMZap
 from .c3_llm_rules import C3LLMRules
@@ -46,6 +46,8 @@ __all__ = [
     "Condition",
     "ConditionContext",
     "ConditionResult",
+    "Knob",
+    "KnobType",
     "REGISTRY",
     "get_condition",
 ]
