@@ -20,11 +20,11 @@ from collections import defaultdict
 from ..corpus import Target, TargetKind
 from ..models import Usage
 from ..scanners import run_semgrep
-from ..scanners.semgrep_runner import DEFAULT_RULESET
 from ..schema import Finding, Location
 from ..scoring import benchmark_cases_in_tree
+from .b1_semgrep import B1Semgrep
 from .b3_llm import _read
-from .base import ConditionContext, ConditionResult, TriageCondition
+from .base import ConditionContext, ConditionResult, Knob, TriageCondition
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
 
 
@@ -32,26 +32,31 @@ class C1LLMSemgrep(TriageCondition):
     id = "C1"
     label = "LLM + Semgrep output (scanner-assisted triage)"
     needs_model = True
+    knobs = (
+        B1Semgrep.knob("semgrep_ruleset"),  # C1's scan phase *is* B1's scan
+        Knob("max_file_bytes", "int", 60_000,
+             help="truncate each file past this many bytes when showing it to the model"),
+    )
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         super().validate(target, ctx)
         # The scan phase needs a source tree; triage-only (scan_in) reads the
         # source files referenced by the loaded findings, not target.source_path.
-        if not ctx.config.get("scan_in") and not target.source_path:
+        if not self.cfg(ctx, "scan_in") and not target.source_path:
             raise ValueError(f"C1 needs target.source_path; {target.name} has none.")
 
     def scope(self, target: Target, ctx: ConditionContext) -> set[str] | None:
         # Semgrep scanned the whole source tree; the in-scope Benchmark cases are
         # the files under it. Triage-only (scan_in) can't know what the upstream
         # scan covered, so it falls back to full-GT scoring.
-        if ctx.config.get("scan_in") or target.kind is not TargetKind.BENCHMARK:
+        if self.cfg(ctx, "scan_in") or target.kind is not TargetKind.BENCHMARK:
             return None
         if not target.source_path:
             return None
         return benchmark_cases_in_tree(target.source_path) or None
 
     def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
-        ruleset = ctx.config.get("semgrep_ruleset", DEFAULT_RULESET)
+        ruleset = self.cfg(ctx, "semgrep_ruleset")
         semgrep = run_semgrep(target.source_path, config=ruleset, source_condition=self.id)
         trace = {
             "ruleset": ruleset,
@@ -64,7 +69,7 @@ class C1LLMSemgrep(TriageCondition):
         self, scanner_findings: list[Finding], target: Target, ctx: ConditionContext
     ) -> ConditionResult:
         assert ctx.model is not None
-        max_bytes = int(ctx.config.get("max_file_bytes", 60_000))
+        max_bytes = int(self.cfg(ctx, "max_file_bytes"))
 
         by_file: dict[str, list[Finding]] = defaultdict(list)
         for f in scanner_findings:

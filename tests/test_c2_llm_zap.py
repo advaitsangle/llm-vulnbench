@@ -10,7 +10,8 @@ import json
 
 import pytest
 
-import vulnbench.conditions.c2_llm_zap as c2_mod
+# C2's scan phase reuses B2's ZAP driver, so that is where run_zap is looked up.
+import vulnbench.conditions.b2_zap as zap_mod
 from vulnbench.conditions import get_condition
 from vulnbench.conditions.base import ConditionContext
 from vulnbench.conditions.c2_llm_zap import C2LLMZap, _endpoint_key, _triage_prompt
@@ -123,7 +124,7 @@ def _patch_run_zap(monkeypatch, fake_zap):
         source_condition = kwargs.get("source_condition", "C2")
         return run_zap(base_url, client=fake_zap, poll_interval=0, source_condition=source_condition)
 
-    monkeypatch.setattr(c2_mod, "run_zap", fake)
+    monkeypatch.setattr(zap_mod, "run_zap", fake)
 
 
 def _target(base_url="https://localhost:8443/benchmark/"):
@@ -284,7 +285,7 @@ def test_c2_triage_only_loads_findings_and_skips_zap(monkeypatch, tmp_path):
     def explode(*a, **k):
         raise AssertionError("run_zap must not be called in triage-only mode")
 
-    monkeypatch.setattr(c2_mod, "run_zap", explode)
+    monkeypatch.setattr(zap_mod, "run_zap", explode)
 
     model = _OneFindingModel()
     target = Target(name="t", kind=TargetKind.BENCHMARK)  # no base_url needed

@@ -6,13 +6,17 @@ from ..corpus import Target, TargetKind
 from ..scanners import run_semgrep
 from ..scanners.semgrep_runner import DEFAULT_RULESET
 from ..scoring import benchmark_cases_in_tree
-from .base import Condition, ConditionContext, ConditionResult
+from .base import Condition, ConditionContext, ConditionResult, Knob
 
 
 class B1Semgrep(Condition):
     id = "B1"
     label = "Semgrep only (SAST baseline)"
     needs_model = False
+    knobs = (
+        Knob("semgrep_ruleset", "str", DEFAULT_RULESET,
+             help="Semgrep config to scan with (registry id like p/java, or a rules file)"),
+    )
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         super().validate(target, ctx)
@@ -20,7 +24,7 @@ class B1Semgrep(Condition):
             raise ValueError(f"B1 needs target.source_path; {target.name} has none.")
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
-        ruleset = ctx.config.get("semgrep_ruleset", DEFAULT_RULESET)
+        ruleset = self.cfg(ctx, "semgrep_ruleset")
         result = run_semgrep(target.source_path, config=ruleset, source_condition=self.id)
         # Semgrep scans the whole tree, so the in-scope cases are exactly the
         # Benchmark files present under it — honest scoring for a sliced --source.

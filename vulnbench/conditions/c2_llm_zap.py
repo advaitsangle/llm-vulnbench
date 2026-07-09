@@ -23,9 +23,8 @@ from urllib.parse import urlsplit
 
 from ..corpus import Target
 from ..models import Usage
-from ..scanners.benchmark_crawl import load_crawler_requests
-from ..scanners.zap_runner import DEFAULT_ZAP_URL, run_zap
 from ..schema import Finding
+from .b2_zap import ZAP_KNOBS, _run_zap_from_config
 from .base import ConditionContext, ConditionResult, TriageCondition
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
 
@@ -34,37 +33,19 @@ class C2LLMZap(TriageCondition):
     id = "C2"
     label = "LLM + ZAP output (scanner-assisted DAST triage)"
     needs_model = True
+    knobs = ZAP_KNOBS
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         super().validate(target, ctx)
         # The scan phase needs the running app; triage-only (scan_in) does not.
-        if not ctx.config.get("scan_in") and not target.base_url:
+        if not self.cfg(ctx, "scan_in") and not target.base_url:
             raise ValueError(
                 f"C2 needs target.base_url (the running app); {target.name} has none. "
                 "Deploy the target first (see deploy/)."
             )
 
     def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
-        seed_crawler = ctx.config.get("zap_seed_crawler")
-        seed_requests = None
-        if seed_crawler:
-            limit = ctx.config.get("zap_seed_limit")
-            seed_requests = load_crawler_requests(
-                seed_crawler,
-                base_url=target.base_url,
-                limit=int(limit) if limit is not None else None,
-            )
-
-        zap_result = run_zap(
-            target.base_url,
-            zap_url=ctx.config.get("zap_url", DEFAULT_ZAP_URL),
-            api_key=ctx.config.get("zap_api_key", ""),
-            recurse=bool(ctx.config.get("zap_recurse", True)),
-            max_wait=float(ctx.config.get("zap_max_wait", 1800.0)),
-            source_condition=self.id,
-            seed_requests=seed_requests,
-            disable_scanners=ctx.config.get("zap_disable_scanners", ["40026"]),
-        )
+        zap_result = _run_zap_from_config(self, target, ctx)
         trace = {
             **zap_result.trace,
             "zap_version": zap_result.version,
