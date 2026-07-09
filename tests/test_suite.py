@@ -2,8 +2,10 @@ import pytest
 
 from vulnbench import suite
 from vulnbench.cli import main
+from vulnbench.corpus import TargetKind
 from vulnbench.suite import (
     App,
+    app_target,
     clone_command,
     is_installed,
     load_manifest,
@@ -14,8 +16,8 @@ from vulnbench.suite import (
 )
 
 
-def _app(key="x", path="x", repo="https://example.test/x.git"):
-    return App(key=key, name=key, repo=repo, path=path, language="L", description="d")
+def _app(key="x", path="x", repo="https://example.test/x.git", **kw):
+    return App(key=key, name=key, repo=repo, path=path, language="L", description="d", **kw)
 
 
 def _seq(values):
@@ -34,6 +36,37 @@ def _seq(values):
 def test_manifest_ships_and_includes_known_apps():
     keys = {a.key for a in load_manifest()}
     assert {"juice-shop", "dvwa", "webgoat", "benchmark"} <= keys
+
+
+def test_manifest_kind_follows_realistic_flag():
+    apps = {a.key: a for a in load_manifest()}
+    assert apps["benchmark"].kind is TargetKind.BENCHMARK   # realistic = false
+    assert apps["juice-shop"].kind is TargetKind.REALISTIC  # realistic = true
+
+
+def test_app_target_resolves_existing_subpaths_only(tmp_path):
+    app = _app(
+        path="myapp", source_subpath="src", ground_truth_subpath="gt.csv", base_url="http://x:1"
+    )
+    # Neither subpath exists yet -> left None rather than pointing at nothing.
+    t = app_target(app, tmp_path)
+    assert t.source_path is None and t.ground_truth is None
+    assert t.base_url == "http://x:1" and t.kind is TargetKind.REALISTIC
+
+    (tmp_path / "src").mkdir()
+    (tmp_path / "gt.csv").write_text("x")
+    t = app_target(app, tmp_path)
+    assert t.source_path == str(tmp_path / "src")
+    assert t.ground_truth == str(tmp_path / "gt.csv")
+
+
+def test_app_target_ignores_wrong_filetype(tmp_path):
+    """A source_subpath that is a file (or a ground truth that is a dir) is not usable."""
+    app = _app(path="myapp", source_subpath="src", ground_truth_subpath="gt.csv")
+    (tmp_path / "src").write_text("not a dir")
+    (tmp_path / "gt.csv").mkdir()
+    t = app_target(app, tmp_path)
+    assert t.source_path is None and t.ground_truth is None
 
 
 def test_parse_numeric_selection_filters_and_dedups():

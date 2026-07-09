@@ -24,6 +24,7 @@ import tomllib
 from dataclasses import dataclass
 from pathlib import Path
 
+from .corpus import Target, TargetKind
 from .theme import make_console, paint, print_banner, set_plain
 
 _PKG_DIR = Path(__file__).resolve().parent
@@ -41,7 +42,20 @@ class App:
     path: str          # default subdir name under targets/ when installing fresh
     language: str
     description: str
+    #: Also selects the scorer: realistic apps are fuzzy-matched against a curated
+    #: vuln list, synthetic ones auto-scored against a labelled CSV.
     realistic: bool = True
+    #: Run-wiring hints (all optional — see the comment block atop targets.toml).
+    #: Path under the app's root to the source tree, for SAST/LLM conditions.
+    source_subpath: str | None = None
+    #: Path under the app's root to the ground-truth file, if one is curated.
+    ground_truth_subpath: str | None = None
+    #: Default URL of a locally-deployed instance, for DAST/agentic conditions.
+    base_url: str | None = None
+
+    @property
+    def kind(self) -> TargetKind:
+        return TargetKind.REALISTIC if self.realistic else TargetKind.BENCHMARK
 
 
 def load_manifest(path: Path | None = None) -> list[App]:
@@ -57,6 +71,9 @@ def load_manifest(path: Path | None = None) -> list[App]:
             language=row["language"],
             description=row["description"],
             realistic=row.get("realistic", True),
+            source_subpath=row.get("source_subpath"),
+            ground_truth_subpath=row.get("ground_truth_subpath"),
+            base_url=row.get("base_url"),
         )
         for row in data.get("app", [])
     ]
@@ -103,6 +120,25 @@ def resolved_path(app: App, root: Path, registry: dict[str, str]) -> Path | None
     if default.exists():
         return default
     return None
+
+
+def app_target(app: App, installed_at: Path) -> Target:
+    """Build a :class:`~vulnbench.corpus.Target` from an app's run-wiring fields.
+
+    Subpaths that don't exist on disk are left ``None`` rather than guessed at, so a
+    caller (e.g. the wizard) can prompt for them instead of silently pointing a
+    condition at nothing.
+    """
+    source = installed_at / app.source_subpath if app.source_subpath else None
+    gt = installed_at / app.ground_truth_subpath if app.ground_truth_subpath else None
+    return Target(
+        name=app.key,
+        kind=app.kind,
+        source_path=str(source) if source and source.is_dir() else None,
+        ground_truth=str(gt) if gt and gt.is_file() else None,
+        base_url=app.base_url,
+        meta={"language": app.language},
+    )
 
 
 def is_installed(app: App, root: Path | None = None,
