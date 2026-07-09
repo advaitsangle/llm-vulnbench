@@ -111,6 +111,7 @@ class C3LLMRules(Condition):
     id = "C3"
     label = "LLM-authored Semgrep rules (LLM improves the tool)"
     needs_model = True  # to author; the rules_in (score-only) phase overrides this
+    needs_source = True
     knobs = (
         Knob("author_files", "int", DEFAULT_AUTHOR_FILES,
              help="source files shown to the model as examples when authoring rules"),
@@ -132,8 +133,7 @@ class C3LLMRules(Condition):
                 "rules. Pass --config '{\"rules_in\": PATH}' to score an existing "
                 "ruleset without one."
             )
-        if not target.source_path:
-            raise ValueError(f"C3 needs target.source_path; {target.name} has none.")
+        self._require(target, ctx, model=False, source=self.needs_source, url=self.needs_url)
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         rules_in = self.cfg(ctx, "rules_in")

@@ -91,8 +91,13 @@ class Condition(ABC):
     id: str = "?"
     #: One-line human label.
     label: str = ""
-    #: Whether this condition requires a ``model`` in the context.
+    #: What this condition needs to run. Declaring these (rather than hiding them in a
+    #: hand-written :meth:`validate`) lets a front-end tell, without special-casing any
+    #: condition id, that C2 wants a deployed URL while B1 wants a source tree — so it
+    #: can prompt for the missing coordinate before burning a run on a guaranteed error.
     needs_model: bool = False
+    needs_source: bool = False
+    needs_url: bool = False
     #: Config options this condition understands. A subclass declares only its *own*;
     #: :meth:`all_knobs` merges in those inherited from its bases.
     knobs: tuple[Knob, ...] = ()
@@ -129,8 +134,21 @@ class Condition(ABC):
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         """Fail fast with an actionable message before doing expensive work."""
-        if self.needs_model and ctx.model is None:
+        self._require(target, ctx, model=self.needs_model,
+                      source=self.needs_source, url=self.needs_url)
+
+    def _require(self, target: Target, ctx: ConditionContext, *,
+                 model: bool, source: bool, url: bool) -> None:
+        """Enforce a subset of the requirements; phased subclasses relax some of them."""
+        if model and ctx.model is None:
             raise ValueError(f"Condition {self.id} requires a model backend (--model).")
+        if source and not target.source_path:
+            raise ValueError(f"{self.id} needs target.source_path; {target.name} has none.")
+        if url and not target.base_url:
+            raise ValueError(
+                f"{self.id} needs target.base_url (the running app); {target.name} has none. "
+                "Deploy the target first (see deploy/)."
+            )
 
     @abstractmethod
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult: ...
@@ -196,8 +214,15 @@ class TriageCondition(Condition):
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         # A model is only required for the triage phase; a scan-only run needs none.
-        if self.needs_model and not self._scan_only(ctx) and ctx.model is None:
-            raise ValueError(f"Condition {self.id} requires a model backend (--model).")
+        # Conversely the scanner's inputs (source tree / running app) are only needed
+        # when we actually scan — triage-only (scan_in) works off the saved findings.
+        scanning = not self.cfg(ctx, "scan_in")
+        self._require(
+            target, ctx,
+            model=self.needs_model and not self._scan_only(ctx),
+            source=self.needs_source and scanning,
+            url=self.needs_url and scanning,
+        )
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         scan_in = self.cfg(ctx, "scan_in")

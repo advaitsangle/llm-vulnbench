@@ -33,16 +33,10 @@ class C2LLMZap(TriageCondition):
     id = "C2"
     label = "LLM + ZAP output (scanner-assisted DAST triage)"
     needs_model = True
+    # The scan phase needs the running app; triage-only (scan_in) does not, which
+    # TriageCondition.validate handles.
+    needs_url = True
     knobs = ZAP_KNOBS
-
-    def validate(self, target: Target, ctx: ConditionContext) -> None:
-        super().validate(target, ctx)
-        # The scan phase needs the running app; triage-only (scan_in) does not.
-        if not self.cfg(ctx, "scan_in") and not target.base_url:
-            raise ValueError(
-                f"C2 needs target.base_url (the running app); {target.name} has none. "
-                "Deploy the target first (see deploy/)."
-            )
 
     def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
         zap_result = _run_zap_from_config(self, target, ctx)

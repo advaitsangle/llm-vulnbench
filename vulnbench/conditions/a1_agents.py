@@ -92,6 +92,7 @@ class A1MultiAgent(Condition):
     id = "A1"
     label = "Multi-agent roles (scout/hunt/verify)"
     needs_model = True
+    needs_source = True
     knobs = SCAN_KNOBS + (
         Knob("triage", "bool", True,
              help="run the scout role (off = a flat B3-like pass, plus the verifier)"),
@@ -103,11 +104,6 @@ class A1MultiAgent(Condition):
         Knob("min_risk", "float", 0.0,
              help="deep-dive only files the scout scored at or above this (0 = all)"),
     )
-
-    def validate(self, target: Target, ctx: ConditionContext) -> None:
-        super().validate(target, ctx)
-        if not target.source_path:
-            raise ValueError(f"A1 needs target.source_path; {target.name} has none.")
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         assert ctx.model is not None

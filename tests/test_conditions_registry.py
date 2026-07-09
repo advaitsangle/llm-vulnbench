@@ -9,6 +9,7 @@ import pytest
 from vulnbench.conditions import REGISTRY, get_condition
 from vulnbench.conditions.base import Condition, ConditionContext, Knob, TriageCondition
 from vulnbench.corpus import Target, TargetKind
+from vulnbench.models import MockBackend
 
 
 def test_registry_keys_match_class_ids():
@@ -37,6 +38,45 @@ def test_model_requiring_conditions_validate_model_presence():
         if cls.needs_model:
             with pytest.raises(ValueError):
                 cls().validate(target, ConditionContext(model=None))
+
+
+# --- declared requirements ------------------------------------------------------
+# The wizard reads these flags to decide what to prompt for, so they must agree with
+# what validate() actually enforces. Otherwise it prompts for the wrong coordinate.
+
+def test_needs_source_flag_matches_validate():
+    model = MockBackend()
+    for cls in REGISTRY.values():
+        # A target with a URL but no source tree.
+        target = Target(name="t", kind=TargetKind.BENCHMARK, base_url="http://x")
+        if cls.needs_source:
+            with pytest.raises(ValueError, match="source_path"):
+                cls().validate(target, ConditionContext(model=model))
+
+
+def test_needs_url_flag_matches_validate():
+    model = MockBackend()
+    for cls in REGISTRY.values():
+        # A target with a source tree but no deployed URL.
+        target = Target(name="t", kind=TargetKind.BENCHMARK, source_path="/tmp")
+        if cls.needs_url:
+            with pytest.raises(ValueError, match="base_url"):
+                cls().validate(target, ConditionContext(model=model))
+
+
+def test_every_condition_declares_at_least_one_input():
+    """A condition that needs neither source nor URL has nothing to analyze."""
+    for cls in REGISTRY.values():
+        assert cls.needs_source or cls.needs_url, f"{cls.id} declares no input"
+
+
+def test_triage_scan_in_relaxes_the_scanner_input_requirement():
+    """Phase 2 works off saved findings, so it needs neither source tree nor URL."""
+    bare = Target(name="t", kind=TargetKind.BENCHMARK)
+    ctx = ConditionContext(model=MockBackend(), config={"scan_in": "/tmp/x.json"})
+    for cls in REGISTRY.values():
+        if issubclass(cls, TriageCondition):
+            cls().validate(bare, ctx)  # must not raise
 
 
 # --- declared knobs -------------------------------------------------------------

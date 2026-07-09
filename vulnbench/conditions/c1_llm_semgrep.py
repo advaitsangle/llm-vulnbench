@@ -32,18 +32,14 @@ class C1LLMSemgrep(TriageCondition):
     id = "C1"
     label = "LLM + Semgrep output (scanner-assisted triage)"
     needs_model = True
+    # Triage-only (scan_in) reads the source files referenced by the loaded findings,
+    # not target.source_path; TriageCondition.validate relaxes this requirement there.
+    needs_source = True
     knobs = (
         B1Semgrep.knob("semgrep_ruleset"),  # C1's scan phase *is* B1's scan
         Knob("max_file_bytes", "int", 60_000,
              help="truncate each file past this many bytes when showing it to the model"),
     )
-
-    def validate(self, target: Target, ctx: ConditionContext) -> None:
-        super().validate(target, ctx)
-        # The scan phase needs a source tree; triage-only (scan_in) reads the
-        # source files referenced by the loaded findings, not target.source_path.
-        if not self.cfg(ctx, "scan_in") and not target.source_path:
-            raise ValueError(f"C1 needs target.source_path; {target.name} has none.")
 
     def scope(self, target: Target, ctx: ConditionContext) -> set[str] | None:
         # Semgrep scanned the whole source tree; the in-scope Benchmark cases are
