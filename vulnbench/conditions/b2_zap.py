@@ -59,15 +59,8 @@ class B2Zap(Condition):
     id = "B2"
     label = "OWASP ZAP only (DAST baseline)"
     needs_model = False
+    needs_url = True
     knobs = ZAP_KNOBS
-
-    def validate(self, target: Target, ctx: ConditionContext) -> None:
-        super().validate(target, ctx)
-        if not target.base_url:
-            raise ValueError(
-                f"B2 needs target.base_url (the running app); {target.name} has none. "
-                "Deploy the target first (see deploy/)."
-            )
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         result = _run_zap_from_config(self, target, ctx)

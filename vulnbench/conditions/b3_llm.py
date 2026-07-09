@@ -32,12 +32,8 @@ class B3LLM(Condition):
     id = "B3"
     label = "LLM only (unaided)"
     needs_model = True
+    needs_source = True
     knobs = SCAN_KNOBS
-
-    def validate(self, target: Target, ctx: ConditionContext) -> None:
-        super().validate(target, ctx)
-        if not target.source_path:
-            raise ValueError(f"B3 needs target.source_path; {target.name} has none.")
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         assert ctx.model is not None

@@ -13,15 +13,11 @@ class B1Semgrep(Condition):
     id = "B1"
     label = "Semgrep only (SAST baseline)"
     needs_model = False
+    needs_source = True
     knobs = (
         Knob("semgrep_ruleset", "str", DEFAULT_RULESET,
              help="Semgrep config to scan with (registry id like p/java, or a rules file)"),
     )
-
-    def validate(self, target: Target, ctx: ConditionContext) -> None:
-        super().validate(target, ctx)
-        if not target.source_path:
-            raise ValueError(f"B1 needs target.source_path; {target.name} has none.")
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         ruleset = self.cfg(ctx, "semgrep_ruleset")
