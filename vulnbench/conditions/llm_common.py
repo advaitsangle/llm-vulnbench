@@ -20,16 +20,44 @@ SYSTEM_PROMPT = (
     "findings: every reported vulnerability must cite concrete supporting "
     "evidence from the provided material, and you must note disconfirming "
     "evidence when it exists. When unsure, prefer the 'candidate' or "
-    "'not_supported' verdict over 'confirmed'."
+    "'not_supported' verdict over 'confirmed'. You classify every finding using "
+    "ONLY a CWE id drawn from the MITRE CWE Top 25 list you are given; if the "
+    "best fit is not on that list, pick the single closest entry that is."
 )
 
+#: The 2023 MITRE CWE Top 25 — the closed label set the model must classify into.
+#: A fixed, industry-standard taxonomy (not this benchmark's own categories), so
+#: "the model knew the bug but emitted the wrong number" is separable from "the
+#: model could not detect the bug" without teaching to the test.
+TOP25_CWES = """\
+22  Path Traversal               | 78  OS Command Injection
+79  Cross-site Scripting (XSS)   | 89  SQL Injection
+20  Improper Input Validation    | 77  Command Injection
+94  Code Injection               | 502 Deserialization of Untrusted Data
+918 Server-Side Request Forgery  | 434 Unrestricted File Upload
+352 Cross-Site Request Forgery   | 287 Improper Authentication
+306 Missing Authentication       | 862 Missing Authorization
+863 Incorrect Authorization      | 269 Improper Privilege Management
+276 Incorrect Default Permissions| 798 Hard-coded Credentials
+787 Out-of-bounds Write          | 125 Out-of-bounds Read
+119 Improper Memory Restriction  | 416 Use After Free
+476 NULL Pointer Dereference     | 190 Integer Overflow
+362 Race Condition"""
+
 #: The required response shape. Documented inline so the model self-validates.
-OUTPUT_CONTRACT = """\
+OUTPUT_CONTRACT = (
+    "Classify each finding using ONLY a CWE id from this list (the MITRE CWE "
+    "Top 25). Do not invent or use any CWE id outside it:\n"
+    + TOP25_CWES
+    + """
+
 Respond with ONLY a JSON object of this exact shape (no markdown, no prose):
 {
   "findings": [
     {
-      "cwe": <integer CWE id, e.g. 89>,
+      "cwe": <integer CWE id — MUST be one of the Top 25 ids listed above>,
+      "vuln_type": "<the plain-English name of the bug you are reporting>",
+      "diagnostic": "<one sentence: the untrusted source and the dangerous sink, in your words>",
       "file": "<source file path, or null>",
       "line": <integer line number, or null>,
       "url": "<endpoint URL, or null>",
@@ -44,6 +72,7 @@ Respond with ONLY a JSON object of this exact shape (no markdown, no prose):
   ]
 }
 If you find nothing, return {"findings": []}."""
+)
 
 
 def parse_findings(text: str, source_condition: str) -> list[Finding]:
@@ -71,6 +100,11 @@ def parse_findings(text: str, source_condition: str) -> list[Finding]:
                 remediation=item.get("remediation"),
                 requires_human_review=bool(item.get("requires_human_review", False)),
                 message=item.get("evidence"),
+                extra={
+                    k: item[k]
+                    for k in ("vuln_type", "diagnostic")
+                    if item.get(k) is not None
+                },
             )
         )
     return findings
