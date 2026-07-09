@@ -1,0 +1,42 @@
+name: CI
+
+# Gate every PR (and pushes to main) on lint + tests so review is about
+# design, not "did this break the build." Make this a *required* status check
+# in branch-protection settings — see .github/CODEOWNERS for the frozen paths.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same branch/PR cancels the older in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Core is stdlib-only, so it should hold across the supported range
+        # (pyproject: requires-python >= 3.11).
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install (dev extras: ruff + pytest)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Lint (ruff)
+        run: ruff check vulnbench tests
+
+      - name: Tests (pytest)
+        run: python -m pytest -q
