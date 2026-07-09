@@ -10,7 +10,6 @@ from vulnbench.suite import (
     is_installed,
     load_manifest,
     load_registry,
-    parse_numeric_selection,
     pull_command,
     resolved_path,
 )
@@ -67,12 +66,6 @@ def test_app_target_ignores_wrong_filetype(tmp_path):
     (tmp_path / "gt.csv").mkdir()
     t = app_target(app, tmp_path)
     assert t.source_path is None and t.ground_truth is None
-
-
-def test_parse_numeric_selection_filters_and_dedups():
-    assert parse_numeric_selection("1 3 3 9", count=4) == [0, 2]  # 9 out of range, dup dropped
-    assert parse_numeric_selection("2,1", count=4) == [0, 1]      # commas, sorted
-    assert parse_numeric_selection("nope", count=4) == []
 
 
 def test_command_builders():

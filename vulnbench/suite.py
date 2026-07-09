@@ -10,8 +10,7 @@ Either way the resolved location is saved as a *reference* in a small gitignored
 (``targets/registry.json``), so the path is data, not hard-coded. A clone at the default
 ``targets/<name>`` is still auto-recognized, so existing checkouts keep working untouched.
 
-Stdlib only (the project's core has zero third-party deps): the menu is a small raw-terminal
-reader via ``termios``/``tty``, with a numbered-prompt fallback when stdin/stdout isn't a TTY.
+The menu itself is the shared widget in :mod:`vulnbench.tui`, which the wizard reuses.
 """
 
 from __future__ import annotations
@@ -26,6 +25,10 @@ from pathlib import Path
 
 from .corpus import Target, TargetKind
 from .theme import make_console, paint, print_banner, set_plain
+from .tui import is_interactive as _is_interactive
+from .tui import prompt as _prompt
+from .tui import prompt_yes_no as _prompt_yes_no
+from .tui import select as _select
 
 _PKG_DIR = Path(__file__).resolve().parent
 _MANIFEST = _PKG_DIR / "targets.toml"
@@ -173,22 +176,7 @@ def pull(dest: Path) -> None:
     subprocess.run(pull_command(dest), check=True)
 
 
-# --- selection: pure parsing + the two front-ends (raw TTY, text fallback) --------
-
-def parse_numeric_selection(text: str, count: int) -> list[int]:
-    """Parse "1 3 4" / "1,3" into sorted unique 0-based indices in range; ignore junk."""
-    out: set[int] = set()
-    for tok in text.replace(",", " ").split():
-        if tok.isdigit():
-            i = int(tok) - 1
-            if 0 <= i < count:
-                out.add(i)
-    return sorted(out)
-
-
-def _is_interactive() -> bool:
-    return sys.stdin.isatty() and sys.stdout.isatty()
-
+# --- selection: render App rows, then defer to the shared widget ------------------
 
 def _state_label(path: Path | None) -> str:
     if path is not None:
@@ -202,101 +190,14 @@ def _row(app: App, path: Path | None) -> str:
     return f"{name}  {lang} — {_state_label(path)}"
 
 
-def _read_key(stream) -> str:
-    """Translate one keypress into a token: up/down/space/enter/quit or a literal char."""
-    ch = stream.read(1)
-    if ch == "\x1b":  # ESC — start of an arrow-key sequence (ESC [ A/B) or a lone ESC
-        if stream.read(1) == "[":
-            return {"A": "up", "B": "down"}.get(stream.read(1), "other")
-        return "quit"
-    if ch in ("\r", "\n"):
-        return "enter"
-    if ch == " ":
-        return "space"
-    if ch == "\x03":  # Ctrl-C
-        raise KeyboardInterrupt
-    return ch.lower()
-
-
 def _interactive_select(
     apps: list[App], preselected: set[int], resolved: dict[str, Path | None]
 ) -> list[App] | None:
-    """Raw-terminal multi-select. Returns chosen apps, or None if cancelled."""
-    import termios
-    import tty
-
-    selected = set(preselected)
-    cursor = 0
-    # Link state can't change while the menu is open, so render each row once up front;
-    # only the cursor/checkbox markers vary per keystroke.
+    """Multi-select over the apps. Returns the chosen ones, or None if cancelled."""
+    # Link state can't change while the menu is open, so render each row once up front.
     rows = [_row(app, resolved[app.key]) for app in apps]
-    print(paint("  ↑/↓ move · space toggle · a toggle-all · enter confirm · q cancel\n", dim=True))
-
-    def draw(first: bool) -> None:
-        if not first:
-            sys.stdout.write(f"\x1b[{len(apps)}A")  # cursor up to the first row
-        for i, row in enumerate(rows):
-            pointer = paint("›", "amber", bold=True) if i == cursor else " "
-            box = paint("◉", "pink") if i in selected else paint("○", dim=True)
-            sys.stdout.write(f"\r\x1b[K {pointer} {box} {row}\n")
-        sys.stdout.flush()
-
-    fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    draw(first=True)
-    try:
-        tty.setcbreak(fd)
-        while True:
-            key = _read_key(sys.stdin)
-            if key == "up":
-                cursor = (cursor - 1) % len(apps)
-            elif key == "down":
-                cursor = (cursor + 1) % len(apps)
-            elif key == "space":
-                selected.symmetric_difference_update({cursor})
-            elif key == "a":
-                selected = set() if len(selected) == len(apps) else set(range(len(apps)))
-            elif key == "enter":
-                break
-            elif key in ("q", "quit"):
-                return None
-            else:
-                continue
-            draw(first=False)
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old)
-    return [apps[i] for i in sorted(selected)]
-
-
-def _text_select(
-    apps: list[App], preselected: set[int], resolved: dict[str, Path | None]
-) -> list[App] | None:
-    """Numbered-prompt fallback for non-TTY stdin (pipes/CI)."""
-    print("Available apps:")
-    for i, app in enumerate(apps, 1):
-        mark = "*" if (i - 1) in preselected else " "
-        print(f"  {i}.{mark} {_row(app, resolved[app.key])}")
-    resp = input("Select numbers (e.g. 1 3), 'all', or blank to cancel: ").strip().lower()
-    if not resp:
-        return None
-    idx = list(range(len(apps))) if resp == "all" else parse_numeric_selection(resp, len(apps))
-    return [apps[i] for i in idx]
-
-
-def _prompt(question: str, default: str = "") -> str:
-    try:
-        resp = input(question).strip()
-    except EOFError:
-        return default
-    return resp or default
-
-
-def _prompt_yes_no(question: str, default: bool) -> bool:
-    suffix = "[Y/n]" if default else "[y/N]"
-    resp = _prompt(f"{question} {suffix} ").lower()
-    if not resp:
-        return default
-    return resp in ("y", "yes")
+    idx = _select(rows, preselected)
+    return None if idx is None else [apps[i] for i in idx]
 
 
 # --- per-app resolution (point at existing, or install fresh) ----------------------
