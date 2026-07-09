@@ -1,0 +1,36 @@
+# Code ownership → who GitHub auto-requests for review.
+#
+# The whole repo defaults to @advaitsangle. The explicit core-path entries
+# below exist to make the freeze legible: harness, scoring, models, and the
+# Condition contract are stable API that contributors' A2–A9 conditions build
+# on top of — they should not change as part of adding a condition.
+#
+# To actually enforce this, turn on branch protection for `main`:
+#   - Require a pull request before merging
+#   - Require review from Code Owners
+#   - Require status checks to pass (select the CI job)
+#   - Include administrators (optional, but keeps you honest)
+
+# Default owner for everything.
+*                                   @advaitsangle
+
+# --- Frozen core: the harness and scoring seam ---
+/vulnbench/harness.py               @advaitsangle
+/vulnbench/checkpoint.py            @advaitsangle
+/vulnbench/suite.py                 @advaitsangle
+/vulnbench/report.py                @advaitsangle
+/vulnbench/cli.py                   @advaitsangle
+/vulnbench/schema.py                @advaitsangle
+/vulnbench/scoring/                 @advaitsangle
+/vulnbench/models/                  @advaitsangle
+
+# --- The Condition contract itself ---
+# base.py defines run(target, ctx) -> ConditionResult; __init__.py is the
+# REGISTRY. New conditions add a *new file* + one registry line — changes to
+# these two files are the seam and get owner review.
+/vulnbench/conditions/base.py       @advaitsangle
+/vulnbench/conditions/__init__.py   @advaitsangle
+
+# --- Project + CI config ---
+/pyproject.toml                     @advaitsangle
+/.github/                           @advaitsangle
