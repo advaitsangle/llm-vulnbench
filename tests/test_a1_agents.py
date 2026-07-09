@@ -8,8 +8,8 @@ import json
 
 from vulnbench.corpus import Target, TargetKind
 from vulnbench.harness import run_one
-from vulnbench.models.base import Completion, Usage
 from vulnbench.models import MockBackend
+from vulnbench.models.base import Completion, Usage
 
 
 def _benchmark(tmp_path):

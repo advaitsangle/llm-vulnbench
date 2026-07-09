@@ -14,8 +14,7 @@ import vulnbench.conditions.c3_llm_rules as c3_mod
 from vulnbench.conditions.base import ConditionContext
 from vulnbench.conditions.c3_llm_rules import C3LLMRules, _extract_yaml
 from vulnbench.corpus import Target, TargetKind
-from vulnbench.models import Completion, Usage
-from vulnbench.models import MockBackend
+from vulnbench.models import Completion, MockBackend, Usage
 from vulnbench.scanners.semgrep_runner import SemgrepResult
 from vulnbench.schema import Finding, Location
 
