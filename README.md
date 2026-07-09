@@ -29,19 +29,85 @@ chosen conditions actually use:
 Nothing above is needed to try the harness: the built-in `mock` model and the
 included tests run fully offline.
 
-## Configure the model — it's a flag, not a fork
+## Configuration
 
-Every LLM condition talks to one `ModelBackend.complete()` seam, so the model is
-a single `--model` argument:
+Everything you'd want to change is a **CLI flag or an environment variable** — no code
+edits. The three things you configure most are the model, a few environment variables, and
+optional per-condition knobs.
 
+### Pick a model — `--model`
+
+Every LLM condition talks to one `ModelBackend.complete()` seam, so the model is a single
+argument. Three kinds are built in:
+
+| `--model` value | What it is | One-time setup |
+|---|---|---|
+| `mock` | offline, deterministic; canned schema-valid replies | nothing — built in |
+| `local:<name>` | **your own local model** via [Ollama](https://ollama.com) | `ollama pull <name>` (daemon running) |
+| `api:anthropic:<name>` | **a frontier API model** (the "ceiling") | `pip install 'vulnbench[anthropic]'` + an API key |
+
+```bash
+# 1) offline smoke test — no server, no keys, nothing to install
+vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock
+
+# 2) your own LOCAL model through Ollama — just pull it and name it
+ollama pull qwen2.5-coder:14b
+vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
+    --model local:qwen2.5-coder:14b
+# any Ollama model works — swap the name:  local:llama3.1:8b  ·  local:deepseek-coder-v2:16b
+
+# 3) a frontier model via the Anthropic API
+pip install 'vulnbench[anthropic]'
+export ANTHROPIC_API_KEY=sk-ant-...          # your key
+vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
+    --model api:anthropic:claude-opus-4-8
 ```
---model mock                              # offline, deterministic (no server)
---model local:qwen2.5-coder:14b            # any Ollama model, local
---model api:anthropic:claude-opus-4-8    # any Anthropic model (frontier ceiling)
+
+Want a provider that isn't here (OpenAI, vLLM, a self-hosted endpoint)? It's one small
+backend class behind the same `ModelBackend.complete()` interface — see the "add a model
+backend" recipe in [ARCHITECTURE.md](ARCHITECTURE.md). The conditions and scoring don't change.
+
+> **Local model on a non-default host?** The `local:` backend talks to Ollama at
+> `http://localhost:11434` (Ollama's default). A custom host/port isn't a CLI flag yet —
+> construct `OllamaBackend(host=...)` from Python, or run Ollama on the default address.
+
+### Environment variables
+
+| Variable | Used for | Default |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | the `api:anthropic:` backend (your key) | *(required for that backend)* |
+| `VULNBENCH_TARGETS_DIR` | where `vulnbench targets` installs / looks for apps | `<repo>/targets` |
+| `NO_COLOR` | disable all color and the banner | unset |
+
+### Per-condition knobs — `--config '{...}'`
+
+Conditions accept optional tuning knobs as a JSON object. **Unknown keys are silently
+ignored**, so double-check spelling (`max_files`, not `maxfiles`). The common ones:
+
+| Knob | Conditions | Default | Meaning |
+|---|---|---|---|
+| `max_files` | B3, A1 | all | cap on source files examined (reproducible sorted subset) |
+| `max_file_bytes` | B3, C1, A1 | 60000 | per-file read cap (truncation is recorded, not silent) |
+| `semgrep_ruleset` | C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
+| `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
+| `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
+| `triage`, `verify` | A1 | true | ablation toggles for the scout / verifier roles |
+| `triage_head_bytes`, `triage_batch` | A1 | 1500, 10 | scout's per-file head size and files-per-batch |
+| `author_files`, `author_max_bytes` | C3 | 8, 4000 | example files (and bytes each) shown to the rule author |
+| `rules_out` / `rules_in` | C3 | — | author rules to a file / score with an existing rules file |
+| `scan_out` / `scan_in` | C1, C2 | — | split the scanner phase from model triage (also `--scan-out`/`--scan-in`) |
+| `zap_url`, `zap_api_key`, `zap_recurse`, `zap_max_wait` | B2, C2 | `localhost:8090`, `""`, true, 1800 | ZAP daemon connection + scan knobs |
+| `zap_seed_crawler`, `zap_seed_limit` | B2, C2 | — | seed ZAP from a Benchmark crawler XML (fair DAST scoring) |
+| `zap_disable_scanners` | B2, C2 | `["40026"]` | active-scan plugin ids to skip |
+
+```bash
+# 20-file slice with a bigger per-file budget
+vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
+    --model local:qwen2.5-coder:14b --config '{"max_files": 20, "max_file_bytes": 80000}'
 ```
 
-Adding a provider is a small backend class behind the same interface (see
-[`vulnbench/models/`](vulnbench/models/)); the conditions and scoring don't change.
+New to the codebase? [ARCHITECTURE.md](ARCHITECTURE.md) explains how it all fits together
+and how to add a condition, a model backend, or a scorer.
 
 ## The condition ladder
 
@@ -61,6 +127,9 @@ and add your own without touching the rest.
 
 ## Architecture
 
+> Full developer onboarding — the pipeline diagram, the run lifecycle, and how to add a
+> condition / model / scorer — is in **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
 Three seams keep the matrix uniform and the comparisons fair:
 
 - **`schema.Finding`** — one normalized record (`vuln_class` CWE id, `location`,
@@ -72,8 +141,8 @@ Three seams keep the matrix uniform and the comparisons fair:
 - **`conditions.Condition`** — every cell is `run(target) -> findings + usage`, so
   cost (tokens) and latency (wall-clock) are measured per condition for free.
 
-Scoring is decoupled: `scoring/benchmark.py` auto-scores OWASP Benchmark against
-`expectedresults-*.csv`; `scoring/listmatch.py` fuzzy-matches realistic apps
+Scoring is decoupled: `scoring/owasp_benchmark.py` auto-scores OWASP Benchmark against
+`expectedresults-*.csv`; `scoring/webapps_benchmark.py` fuzzy-matches realistic apps
 (Juice Shop / WebGoat / DVWA) against a curated vuln list.
 
 ```
@@ -83,7 +152,7 @@ vulnbench/
   scanners/            semgrep_runner (B1/C1), zap_runner (B2)
   conditions/          base, b1, b2, b3, c1, c2, c3, a1
   corpus/              Target descriptor
-  scoring/             metrics, benchmark CSV matcher, listmatch
+  scoring/             metrics_unifier, owasp_benchmark (CSV), webapps_benchmark (list)
   harness.py           run_one / run_matrix pipeline (+ provenance)
   checkpoint.py        crash-safe resume between runs
   theme.py             shared CLI look: palette, mascot banner, rich/ANSI color
@@ -250,7 +319,7 @@ A scored static run then needs no extra services:
 
 Bringing your own corpus? The scorer supports two shapes: an OWASP-style
 `expectedresults` CSV (`--kind benchmark`), or a curated vuln-list JSON for
-realistic apps (`--kind realistic`, fuzzy-matched by `scoring/listmatch.py`).
+realistic apps (`--kind realistic`, fuzzy-matched by `scoring/webapps_benchmark.py`).
 
 For the **dynamic** conditions (B2/C2) the app has to be *running*; the Docker stack
 in [`deploy/`](deploy/README.md) builds the BenchmarkJava WAR and a ZAP daemon for you
