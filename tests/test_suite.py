@@ -126,7 +126,11 @@ def test_resolve_update_pulls_a_git_link(tmp_path, monkeypatch):
 def test_cli_targets_list(capsys):
     assert main(["targets", "--list"]) == 0
     out = capsys.readouterr().out
-    assert "juice-shop" in out and "WebGoat" in out
+    # Assert on the app *keys*, which `--list` always prints. The capitalized
+    # "WebGoat" only appears via a "linked → …/WebGoat" path, so asserting it
+    # coupled the test to local link state (green locally, red on a clean CI
+    # checkout where nothing is linked).
+    assert "juice-shop" in out and "webgoat" in out
 
 
 def test_cli_targets_path_lookup(tmp_path, monkeypatch, capsys):
