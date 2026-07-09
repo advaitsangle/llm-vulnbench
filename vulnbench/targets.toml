@@ -1,11 +1,26 @@
 # Optional vulnerable web-app testing suite for vulnbench.
 #
 # Each [[app]] is shallow-cloned into ../targets/<path>, which is gitignored — so
-# these apps never ship with the vulnbench repo; a user opts in via `vulnbench targets`.
+# these apps never ship with the vulnbench repo; a user opts in via `vulnbench targets`
+# (or, inline, via the "select targets" step of the no-arg `vulnbench` wizard, which
+# reuses the same point-or-install flow for anything not yet linked).
 # Clones track upstream: `vulnbench targets --update` pulls the latest version of each.
 #
 # To add an app: append an [[app]] block and re-run `vulnbench targets`. Nothing else
 # in the code needs to change — this file IS the list of options.
+#
+# `realistic` also picks the scorer: false => auto-scored against a labelled Benchmark
+# CSV; true => fuzzy-matched against a curated vuln-list JSON.
+#
+# Run-wiring fields (all optional; the interactive wizard `vulnbench` prompts for
+# whatever is missing at run time instead of failing):
+#   source_subpath        path under the app's root to the source tree, for SAST/LLM
+#                         conditions (B1/B3/C1/C3/A1).
+#   ground_truth_subpath  path under the app's root to the ground-truth file (Benchmark
+#                         CSV or curated vuln-list JSON). Omit if none is curated yet.
+#   base_url              default URL of a locally-deployed instance, for DAST/agentic
+#                         conditions (B2/C2/A1). A hint only — the app must actually be
+#                         running there.
 
 [[app]]
 key = "juice-shop"
@@ -15,6 +30,10 @@ path = "juice-shop"
 language = "JavaScript/TypeScript"
 realistic = true
 description = "Modern intentionally-insecure SPA; rich documented challenge catalog (ground truth)."
+# Server-side handlers, where the bulk of the challenges live; lib/ and models/ also
+# carry some. Widen this if a condition should see them.
+source_subpath = "routes"
+base_url = "http://localhost:3000"
 
 [[app]]
 key = "dvwa"
@@ -24,6 +43,8 @@ path = "DVWA"
 language = "PHP"
 realistic = true
 description = "Damn Vulnerable Web Application; classic per-vuln training app with severity levels."
+source_subpath = "vulnerabilities"
+base_url = "http://localhost:4280"  # port its compose.yml publishes
 
 [[app]]
 key = "webgoat"
@@ -33,6 +54,8 @@ path = "WebGoat"
 language = "Java (Spring)"
 realistic = true
 description = "Realistic Spring app; documented per-lesson vulns. Complements synthetic BenchmarkJava."
+source_subpath = "src/main/java"
+base_url = "http://localhost:8080/WebGoat"
 
 [[app]]
 key = "benchmark"
@@ -42,3 +65,6 @@ path = "BenchmarkJava"
 language = "Java (synthetic)"
 realistic = false
 description = "2740 synthetic test cases with a labelled CSV; the primary quantitative corpus."
+source_subpath = "src/main/java"
+ground_truth_subpath = "expectedresults-1.2.csv"
+base_url = "http://localhost:8080/benchmark"
