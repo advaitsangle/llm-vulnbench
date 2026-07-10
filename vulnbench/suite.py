@@ -83,9 +83,20 @@ def load_manifest(path: Path | None = None) -> list[App]:
 
 
 def targets_root() -> Path:
-    """Default home for fresh clones: ``$VULNBENCH_TARGETS_DIR`` or ``<repo>/targets``."""
+    """Default home for fresh clones.
+
+    ``$VULNBENCH_TARGETS_DIR`` wins; next comes ``<repo>/targets`` when running from
+    a checkout. When the package is pip-installed, its parent is ``site-packages`` —
+    multi-gigabyte app clones must not land there (and can't, on system installs) —
+    so fall back to a per-user directory instead.
+    """
     env = os.environ.get("VULNBENCH_TARGETS_DIR")
-    return Path(env) if env else _PKG_DIR.parent / "targets"
+    if env:
+        return Path(env)
+    repo_root = _PKG_DIR.parent
+    if (repo_root / "pyproject.toml").is_file():  # running from a repo checkout
+        return repo_root / "targets"
+    return Path.home() / ".vulnbench" / "targets"
 
 
 # --- registry: app key -> resolved path on disk (the "reference") -----------------
