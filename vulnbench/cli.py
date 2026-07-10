@@ -62,6 +62,12 @@ def _cmd_list(_: argparse.Namespace) -> int:
     return 0
 
 
+def _usage_error(message: str) -> int:
+    """A user mistake on the command line: one actionable line, no traceback."""
+    print(f"vulnbench: error: {message}", file=sys.stderr)
+    return 2
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     target = Target(
         name=args.name or (args.source or args.url or "target"),
@@ -70,8 +76,18 @@ def _cmd_run(args: argparse.Namespace) -> int:
         base_url=args.url,
         ground_truth=args.ground_truth,
     )
-    model = build_backend(args.model) if args.model else None
-    config = json.loads(args.config) if args.config else {}
+    # Validate the user-supplied bits before any work: a typo'd spec or config
+    # should cost one corrected command, not a traceback (or a partial run).
+    try:
+        config = json.loads(args.config) if args.config else {}
+    except json.JSONDecodeError as exc:
+        return _usage_error(f"--config is not valid JSON ({exc}): {args.config!r}")
+    if not isinstance(config, dict):
+        return _usage_error(f"--config must be a JSON object, got {type(config).__name__}")
+    try:
+        model = build_backend(args.model) if args.model else None
+    except (ValueError, RuntimeError) as exc:
+        return _usage_error(str(exc))
     # Phased triage (C1/C2): --scan-out runs only the scanner and saves its
     # findings; --scan-in skips the scanner and triages those saved findings.
     if args.scan_out:
@@ -122,19 +138,31 @@ def _cmd_run(args: argparse.Namespace) -> int:
             all_findings.extend(findings)
 
     detail_paths: dict[str, str] = {}
+    write_errors = 0
     if reused:
         detail_paths[f"resumed {reused} cell(s) from"] = str(ckpt_path)
     if args.output:
-        with open(args.output, "w", encoding="utf-8") as fh:
-            json.dump(records_json, fh, indent=2)
-        detail_paths["scorecard"] = args.output
+        # A bad output path must not look like a lost run: the checkpoint still
+        # holds every finished cell, so report the write failure and finish.
+        try:
+            with open(args.output, "w", encoding="utf-8") as fh:
+                json.dump(records_json, fh, indent=2)
+            detail_paths["scorecard"] = args.output
+        except OSError as exc:
+            write_errors += 1
+            print(f"vulnbench: could not write scorecard: {exc} "
+                  f"(cells remain resumable in {ckpt_path})", file=sys.stderr)
     if args.findings_out:
         # Raw normalized findings, for auditing which cases were TP/FP/FN.
-        dump_findings(all_findings, args.findings_out)
-        detail_paths[f"{len(all_findings)} findings"] = args.findings_out
+        try:
+            dump_findings(all_findings, args.findings_out)
+            detail_paths[f"{len(all_findings)} findings"] = args.findings_out
+        except OSError as exc:
+            write_errors += 1
+            print(f"vulnbench: could not write findings: {exc}", file=sys.stderr)
 
     reporter.summary(records, target.name, detail_paths)
-    return 0 if all(r.error is None for r in records) else 1
+    return 0 if all(r.error is None for r in records) and not write_errors else 1
 
 
 _TOP_EPILOG = """\
