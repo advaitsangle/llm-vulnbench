@@ -18,3 +18,7 @@ notes/
 
 # Local banner preview artifacts
 banner-preview.*
+
+# Packaging build artifacts
+build/
+dist/
