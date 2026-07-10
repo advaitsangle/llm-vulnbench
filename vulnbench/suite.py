@@ -213,7 +213,7 @@ def _interactive_select(
 
 # --- per-app resolution (point at existing, or install fresh) ----------------------
 
-def _resolve_app(app: App, root: Path, registry: dict[str, str], *, update: bool) -> str:
+def resolve_app(app: App, root: Path, registry: dict[str, str], *, update: bool) -> str:
     """Bring one selected app to a usable state, mutating ``registry``. Returns a status line.
 
     Already linked  → optionally pull; otherwise leave it.
@@ -365,7 +365,7 @@ def _run_targets(args) -> int:
     failed = 0
     for app in chosen:
         try:
-            status = _resolve_app(app, root, registry, update=args.update)
+            status = resolve_app(app, root, registry, update=args.update)
             print(f"  {paint('✓', 'green')} {paint(app.name, bold=True)}: {status}")
         except (subprocess.CalledProcessError, OSError) as exc:
             failed += 1

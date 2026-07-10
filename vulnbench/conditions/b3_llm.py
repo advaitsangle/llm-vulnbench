@@ -8,24 +8,12 @@ they resolve to Benchmark test cases for scoring without extra bookkeeping.
 
 from __future__ import annotations
 
-import os
-
 from ..corpus import Target
 from ..models import Usage
 from ..schema import Finding, Location, benchmark_case_of
-from .base import Condition, ConditionContext, ConditionResult, Knob
+from .base import Condition, ConditionContext, ConditionResult
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
-
-#: Source extensions worth scanning; keeps the model off assets and configs.
-CODE_EXTS = {".java", ".py", ".js", ".ts", ".php", ".rb", ".go"}
-
-#: Shared by every condition that walks a source tree file-by-file (B3, A1).
-SCAN_KNOBS = (
-    Knob("max_files", "int", 0,
-         help="cap on source files read (0 = no cap); a reproducible sorted subset"),
-    Knob("max_file_bytes", "int", 60_000,
-         help="truncate each file past this many bytes"),
-)
+from .source_files import SCAN_KNOBS, iter_source_files, read_capped
 
 
 class B3LLM(Condition):
@@ -45,11 +33,11 @@ class B3LLM(Condition):
         scanned = 0
         truncated: list[str] = []
         scored_cases: set[str] = set()
-        for path in _iter_source_files(target.source_path, max_files):
+        for path in iter_source_files(target.source_path, max_files):
             tc = benchmark_case_of(path)
             if tc is not None:
                 scored_cases.add(tc)  # in scope even if the model finds nothing in it
-            code, was_truncated = _read(path, max_bytes)
+            code, was_truncated = read_capped(path, max_bytes)
             if not code:
                 continue
             if was_truncated:
@@ -86,33 +74,3 @@ def _user_prompt(path: str, code: str) -> str:
         f"Analyze this source file for security vulnerabilities.\n\n"
         f"File: {path}\n```\n{code}\n```\n\n{OUTPUT_CONTRACT}"
     )
-
-
-def _iter_source_files(root: str, cap: int | None):
-    # Sort both directories and files so a capped subset is the *same* subset on
-    # every machine — required for reproducible (and fair) scored runs.
-    count = 0
-    for dirpath, dirnames, files in os.walk(root):
-        dirnames.sort()
-        for name in sorted(files):
-            if os.path.splitext(name)[1].lower() in CODE_EXTS:
-                yield os.path.join(dirpath, name)
-                count += 1
-                if cap and count >= cap:
-                    return
-
-
-def _read(path: str, max_bytes: int) -> tuple[str, bool]:
-    """Read up to ``max_bytes``; return ``(text, truncated)``.
-
-    Truncation is surfaced (not silent) so a vuln past the cap is an observable
-    limitation, recorded per run rather than disappearing.
-    """
-    try:
-        with open(path, encoding="utf-8", errors="replace") as fh:
-            chunk = fh.read(max_bytes + 1)
-    except OSError:
-        return "", False
-    if len(chunk) > max_bytes:
-        return chunk[:max_bytes], True
-    return chunk, False

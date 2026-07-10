@@ -23,9 +23,9 @@ from ..scanners import run_semgrep
 from ..schema import Finding, Location
 from ..scoring import benchmark_cases_in_tree
 from .b1_semgrep import B1Semgrep
-from .b3_llm import _read
 from .base import ConditionContext, ConditionResult, Knob, TriageCondition
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
+from .source_files import read_capped
 
 
 class C1LLMSemgrep(TriageCondition):
@@ -76,7 +76,7 @@ class C1LLMSemgrep(TriageCondition):
         usage = Usage()
         truncated = 0
         for path, raw in by_file.items():
-            code, was_truncated = _read(path, max_bytes) if path else ("", False)
+            code, was_truncated = read_capped(path, max_bytes) if path else ("", False)
             truncated += int(was_truncated)
             messages = [
                 {"role": "system", "content": SYSTEM_PROMPT},

@@ -35,10 +35,10 @@ from .models.ollama_backend import DEFAULT_HOST as OLLAMA_HOST
 from .report import Reporter
 from .schema import Finding, dump_findings
 from .suite import (
-    _resolve_app,
     app_target,
     load_manifest,
     load_registry,
+    resolve_app,
     resolved_path,
     save_registry,
     targets_root,
@@ -227,7 +227,7 @@ def _choose_targets() -> list[Target] | None:
         path = resolved[app.key]
         if path is None:
             # Same point-or-install prompt `vulnbench targets` uses.
-            status = _resolve_app(app, root, registry, update=False)
+            status = resolve_app(app, root, registry, update=False)
             print(f"  {paint('✓', 'green')} {paint(app.name, bold=True)}: {status}")
             save_registry(registry, root)
             path = resolved_path(app, root, registry)

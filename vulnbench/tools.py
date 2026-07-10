@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .models.ollama_backend import DEFAULT_HOST as OLLAMA_HOST
-from .scanners.semgrep_runner import _resolve_semgrep
+from .scanners.semgrep_runner import resolve_semgrep
 from .scanners.zap_runner import DEFAULT_ZAP_URL
 
 _PKG_DIR = Path(__file__).resolve().parent
@@ -46,7 +46,7 @@ def _http_ok(url: str, timeout: float = 1.0) -> bool:
 
 
 def _semgrep_available(_config: dict) -> bool:
-    return _resolve_semgrep() is not None
+    return resolve_semgrep() is not None
 
 
 def _zap_available(config: dict) -> bool:
