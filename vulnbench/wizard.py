@@ -30,7 +30,7 @@ from .checkpoint import Checkpoint, default_path, signature
 from .conditions import REGISTRY, Knob, get_condition
 from .corpus import Target
 from .harness import RunRecord, run_one
-from .models import ModelBackend, build_backend
+from .models import ModelBackend, build_backend, is_valid_spec
 from .models.ollama_backend import DEFAULT_HOST as OLLAMA_HOST
 from .report import Reporter
 from .schema import Finding, dump_findings
@@ -176,14 +176,31 @@ def _choose_models() -> list[str] | None:
         return None
     if "__custom__" in chosen:
         chosen = [c for c in chosen if c != "__custom__"]
-        raw = prompt("  model spec(s), space-separated: ")
-        chosen.extend(raw.split())
+        chosen.extend(_prompt_custom_specs())
     # Fail here rather than after the user has configured an entire sweep.
     if not has_key and any(c.startswith("api:anthropic:") for c in chosen):
         print(paint("  ! ANTHROPIC_API_KEY is not set; those cells would fail.", "red"))
         if not prompt_yes_no("  Continue anyway?", default=False):
             return None
     return chosen
+
+
+def _prompt_custom_specs() -> list[str]:
+    """Read hand-typed model specs, re-prompting until every one parses.
+
+    A typo here used to surface as a crash mid-sweep, hours after this prompt;
+    checking the grammar now costs one retry instead of a lost run. Blank = none.
+    """
+    while True:
+        raw = prompt("  model spec(s), space-separated: ")
+        specs = raw.split()
+        bad = [s for s in specs if not is_valid_spec(s)]
+        if not bad:
+            return specs
+        print(paint(
+            f"    unrecognized spec(s): {', '.join(bad)} — "
+            "use mock, local:<model>, or api:anthropic:<model>", "red",
+        ))
 
 
 def _choose_targets() -> list[Target] | None:
@@ -407,6 +424,7 @@ def _run_configs(configs: list[RunConfig], config: dict, reporter: Reporter,
     all_findings: list[Finding] = []
     gt_cache: dict = {}
     backends: dict[str, ModelBackend] = {}
+    backend_errors: dict[str, str] = {}
     checkpoints: dict[Path, Checkpoint] = {}
     reused = 0
 
@@ -425,13 +443,23 @@ def _run_configs(configs: list[RunConfig], config: dict, reporter: Reporter,
                 reporter.line(record, resumed=True)
             else:
                 # Build each backend once and share it across the cells that use it.
-                if spec is not None and spec not in backends:
-                    backends[spec] = build_backend(spec)
-                record, findings = run_one(
-                    cfg.target, cfg.condition_id,
-                    model=backends[spec] if spec is not None else None,
-                    config=config, ground_truth_cache=gt_cache,
-                )
+                # A backend that can't be built (missing API key or optional package)
+                # fails those cells only — the rest of the sweep still runs.
+                if spec is not None and spec not in backends and spec not in backend_errors:
+                    try:
+                        backends[spec] = build_backend(spec)
+                    except (ValueError, RuntimeError) as exc:
+                        backend_errors[spec] = f"{type(exc).__name__}: {exc}"
+                if spec in backend_errors:
+                    record, findings = RunRecord.failed(
+                        cfg.target.name, cfg.condition_id, spec, backend_errors[spec],
+                    ), []
+                else:
+                    record, findings = run_one(
+                        cfg.target, cfg.condition_id,
+                        model=backends[spec] if spec is not None else None,
+                        config=config, ground_truth_cache=gt_cache,
+                    )
                 if record.error is None:
                     ckpt.put(cfg.condition_id, record, findings)
                 reporter.line(record)
