@@ -95,6 +95,11 @@ def _cmd_run(args: argparse.Namespace) -> int:
         config["scan_out"] = args.scan_out
     if args.scan_in:
         config["scan_in"] = args.scan_in
+    # Smoke test (--sample): one seeded random slice shared by every condition.
+    if args.sample:
+        config["sample_files"] = args.sample
+    if args.sample_seed is not None:
+        config["sample_seed"] = args.sample_seed
     known_knobs = {k.name for cls in condition_classes for k in cls.all_knobs()}
     unknown = sorted(set(config) - known_knobs)
     if unknown:
@@ -277,6 +282,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help="phased C1/C2: run only the scanner, save findings here, skip the model")
     r.add_argument("--scan-in", metavar="FILE",
                    help="phased C1/C2: skip the scanner, triage findings loaded from here")
+    # --- smoke test ---------------------------------------------------------
+    r.add_argument("--sample", type=int, metavar="N",
+                   help="smoke test: run the chosen conditions against N randomly "
+                        "sampled source files (seeded, so the slice is reproducible)")
+    r.add_argument("--sample-seed", type=int, metavar="SEED",
+                   help="vary which files --sample picks (default seed: 42)")
     # --- output ------------------------------------------------------------
     r.add_argument("-o", "--output", metavar="FILE", help="write the scorecard JSON here")
     r.add_argument("--findings-out", metavar="FILE",

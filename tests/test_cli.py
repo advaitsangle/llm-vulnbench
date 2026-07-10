@@ -104,3 +104,46 @@ def test_run_config_key_valid_for_any_chosen_condition_is_accepted(tmp_path):
                  "--checkpoint", str(tmp_path / "ck.json"),
                  "--config", '{"max_files": 5}', "--plain"])
     assert code == 0
+
+
+def _benchmark_tree(tmp_path, n=20):
+    src = tmp_path / "src"
+    src.mkdir()
+    for i in range(n):
+        (src / f"BenchmarkTest{i:05d}.java").write_text("class X {}")
+    gt = tmp_path / "gt.csv"
+    gt.write_text("# name,category,real,cwe\n" + "".join(
+        f"BenchmarkTest{i:05d},sqli,true,89\n" for i in range(n)
+    ))
+    return src, gt
+
+
+def test_sample_flag_scores_only_the_sampled_cases(tmp_path, capsys):
+    src, gt = _benchmark_tree(tmp_path)
+    out = tmp_path / "card.json"
+    code = main(["run", "--condition", "B3", "--model", "mock", "--source", str(src),
+                 "--ground-truth", str(gt), "--kind", "benchmark",
+                 "--sample", "5", "--checkpoint", str(tmp_path / "ck.json"),
+                 "-o", str(out), "--plain"])
+    assert code == 0
+    record = json.loads(out.read_text())[0]
+    m = record["metrics"]
+    # Denominator is the 5 sampled cases, not all 20 — the mock finds nothing,
+    # so every sampled real case is a miss and nothing else is counted.
+    assert m["tp"] + m["fn"] == 5
+
+
+def test_sample_is_reproducible_across_runs_and_varies_by_seed(tmp_path):
+    src, gt = _benchmark_tree(tmp_path)
+
+    def cases_for(seed):
+        out = tmp_path / f"card-{seed}.json"
+        assert main(["run", "--condition", "B3", "--model", "mock", "--source", str(src),
+                     "--ground-truth", str(gt), "--kind", "benchmark", "--sample", "5",
+                     "--sample-seed", str(seed), "--fresh",
+                     "--checkpoint", str(tmp_path / f"ck-{seed}.json"),
+                     "-o", str(out), "--plain"]) == 0
+        return json.loads(out.read_text())[0]["provenance"]["config"]
+
+    assert cases_for(42) == cases_for(42)
+    assert cases_for(42) != cases_for(7)  # seed is part of the run signature

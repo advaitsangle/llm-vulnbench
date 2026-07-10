@@ -72,3 +72,25 @@ def test_malformed_ground_truth_row_reports_file_and_line(tmp_path):
     gt.write_text("BenchmarkTest00001,sqli\n")  # too few columns
     with pytest.raises(ValueError, match=r"gt\.csv:1"):
         load_expected_results(str(gt))
+
+
+def test_sample_source_files_is_seeded_and_reproducible(tmp_path):
+    from vulnbench.conditions.source_files import sample_source_files
+
+    for i in range(20):
+        (tmp_path / f"BenchmarkTest{i:05d}.java").write_text("class X {}")
+    a = sample_source_files(str(tmp_path), 5, seed=42)
+    b = sample_source_files(str(tmp_path), 5, seed=42)
+    c = sample_source_files(str(tmp_path), 5, seed=7)
+    assert len(a) == 5
+    assert a == b            # same seed => same slice, on any machine or re-run
+    assert a != c            # a different seed picks different files
+    assert a == sorted(a)    # deterministic downstream iteration order
+
+
+def test_sample_larger_than_the_tree_returns_every_file(tmp_path):
+    from vulnbench.conditions.source_files import sample_source_files
+
+    (tmp_path / "a.java").write_text("x")
+    (tmp_path / "b.java").write_text("y")
+    assert len(sample_source_files(str(tmp_path), 99, seed=1)) == 2

@@ -318,3 +318,48 @@ def test_unbuildable_backend_fails_its_cells_not_the_sweep(tmp_path, monkeypatch
     assert [r.error is not None for r in records] == [True, True]
     assert "ANTHROPIC_API_KEY" in records[0].error
     assert findings == [] and reused == 0
+
+
+# --- run scope: smoke test vs full run ---------------------------------------------
+
+def test_supports_sampling_only_for_source_based_conditions():
+    from vulnbench.wizard import supports_sampling
+
+    assert supports_sampling(["B1"]) and supports_sampling(["B3", "B2"])
+    assert not supports_sampling(["B2"])   # DAST attacks a URL; no files to sample
+    assert not supports_sampling(["C2"])
+
+
+def test_choose_scope_skipped_when_no_condition_can_sample(monkeypatch):
+    monkeypatch.setattr(wizard, "select", lambda *a, **kw: pytest.fail("must not prompt"))
+    assert wizard._choose_scope(["B2"]) == {}
+
+
+def test_choose_scope_full_run_adds_no_config(monkeypatch):
+    monkeypatch.setattr(wizard, "select", lambda *a, **kw: [0])  # "full run"
+    assert wizard._choose_scope(["B3"]) == {}
+
+
+def test_choose_scope_smoke_test_sets_sample_knobs(monkeypatch):
+    monkeypatch.setattr(wizard, "select", lambda *a, **kw: [1])  # "smoke test"
+    answers = iter(["7", "99"])
+    monkeypatch.setattr(wizard, "prompt", lambda *a, **kw: next(answers))
+    assert wizard._choose_scope(["B3"]) == {"sample_files": 7, "sample_seed": 99}
+
+
+def test_choose_scope_cancelled_returns_none(monkeypatch):
+    monkeypatch.setattr(wizard, "select", lambda *a, **kw: None)
+    assert wizard._choose_scope(["B3"]) is None
+
+
+def test_prompt_positive_int_reprompts_on_junk_and_zero(monkeypatch, capsys):
+    answers = iter(["abc", "0", "-3", "12"])
+    monkeypatch.setattr(wizard, "prompt", lambda *a, **kw: next(answers))
+    assert wizard._prompt_positive_int("n", 10) == 12
+    out = capsys.readouterr().out
+    assert "not a number" in out and "greater than zero" in out
+
+
+def test_prompt_positive_int_blank_takes_the_default(monkeypatch):
+    monkeypatch.setattr(wizard, "prompt", lambda q, default="": default)
+    assert wizard._prompt_positive_int("n", 10) == 10

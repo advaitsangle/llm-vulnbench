@@ -72,6 +72,11 @@ def _detected_cwes(findings: Iterable[Finding]) -> dict[str, set[int]]:
     return detected
 
 
+def benchmark_cases_of(paths: Iterable[str]) -> set[str]:
+    """The Benchmark test-case ids named by these file paths (the sampled in-scope set)."""
+    return {tc for p in paths if (tc := benchmark_case_of(p)) is not None}
+
+
 def benchmark_cases_in_tree(root: str) -> set[str]:
     """The Benchmark test-case ids present as files under a source tree.
 

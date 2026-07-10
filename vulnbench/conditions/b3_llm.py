@@ -13,7 +13,13 @@ from ..models import Usage
 from ..schema import Finding, Location, benchmark_case_of
 from .base import Condition, ConditionContext, ConditionResult
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
-from .source_files import SCAN_KNOBS, iter_source_files, read_capped
+from .source_files import (
+    SAMPLE_KNOBS,
+    SCAN_KNOBS,
+    iter_source_files,
+    read_capped,
+    sampled_paths_for,
+)
 
 
 class B3LLM(Condition):
@@ -21,19 +27,23 @@ class B3LLM(Condition):
     label = "LLM only (unaided)"
     needs_model = True
     needs_source = True
-    knobs = SCAN_KNOBS
+    knobs = SCAN_KNOBS + SAMPLE_KNOBS
 
     def run(self, target: Target, ctx: ConditionContext) -> ConditionResult:
         assert ctx.model is not None
         max_files = int(self.cfg(ctx, "max_files")) or None
         max_bytes = int(self.cfg(ctx, "max_file_bytes"))
+        # --sample overrides max_files: the smoke slice *is* the file set.
+        paths = sampled_paths_for(self, ctx, target.source_path)
+        if paths is None:
+            paths = iter_source_files(target.source_path, max_files)
 
         findings: list[Finding] = []
         usage = Usage()
         scanned = 0
         truncated: list[str] = []
         scored_cases: set[str] = set()
-        for path in iter_source_files(target.source_path, max_files):
+        for path in paths:
             tc = benchmark_case_of(path)
             if tc is not None:
                 scored_cases.add(tc)  # in scope even if the model finds nothing in it
