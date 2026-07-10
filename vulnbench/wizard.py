@@ -344,8 +344,8 @@ def _preflight(condition_ids: list[str], model_specs: list[str], config: dict) -
     print(f"\n{paint('Missing dependencies', 'blue', bold=True)}")
     for tool in missing:
         print(f"  {paint('✗', 'red')} {paint(tool.label, bold=True)}")
-        if tool.install_cmd and prompt_yes_no(f"    Install now? ({tool.install_note})",
-                                              default=True):
+        if tool.install_command() and prompt_yes_no(f"    Install now? ({tool.install_note})",
+                                                    default=True):
             if run_install(tool, config):
                 print(f"    {paint('✓ installed', 'green')}")
                 continue
