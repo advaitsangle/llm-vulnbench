@@ -75,6 +75,12 @@ class Tool:
     check: Callable[[dict], bool] = field(compare=False, repr=False)
     #: A command we can offer to run. ``None`` means "we can't do this for you".
     install_cmd: tuple[str, ...] | None = None
+    #: Lazy alternative to ``install_cmd``, consulted first: re-derives the command at
+    #: ask time, so a prerequisite that appeared *after* import (Docker started, a file
+    #: created) is noticed. Returning ``None`` means the command is currently unavailable.
+    install_cmd_factory: Callable[[], tuple[str, ...] | None] | None = field(
+        default=None, compare=False, repr=False
+    )
     #: Plain-English description of what ``install_cmd`` will do, shown before running.
     install_note: str = ""
     #: Seconds to keep re-probing after ``install_cmd`` returns. A package install is
@@ -85,6 +91,12 @@ class Tool:
 
     def available(self, config: dict | None = None) -> bool:
         return self.check(config or {})
+
+    def install_command(self) -> tuple[str, ...] | None:
+        """The command to offer right now, or ``None`` when there is nothing to run."""
+        if self.install_cmd_factory is not None:
+            return self.install_cmd_factory()
+        return self.install_cmd
 
     def wait_until_available(self, config: dict | None = None) -> bool:
         """Poll :meth:`available` for up to :attr:`startup_wait` seconds."""
@@ -122,13 +134,13 @@ ZAP = Tool(
     key="zap",
     label="OWASP ZAP daemon",
     check=_zap_available,
-    install_cmd=_zap_install_cmd(),
+    install_cmd_factory=_zap_install_cmd,
     install_note=f"docker compose up the zap service from {_COMPOSE_FILE}",
     startup_wait=60.0,  # the container is created long before ZAP binds its port
     hint=(
         "Start ZAP in daemon mode — `zap.sh -daemon -host 0.0.0.0 -port 8090 "
-        "-config api.disablekey=true` — or bring up deploy/docker-compose.yml. "
-        "If it listens elsewhere, set the zap_url knob."
+        "-config api.disablekey=true` — or, from a repo checkout, bring up "
+        "deploy/docker-compose.yml. If it listens elsewhere, set the zap_url knob."
     ),
 )
 
@@ -170,10 +182,11 @@ def run_install(tool: Tool, config: dict | None = None) -> bool:
     ``config`` is forwarded to the probe so a tool reached over the network (ZAP) is
     verified at the address the run will actually use, not at its default.
     """
-    if tool.install_cmd is None:
+    cmd = tool.install_command()
+    if cmd is None:
         return False
     try:
-        subprocess.run(tool.install_cmd, check=True)
+        subprocess.run(cmd, check=True)
     except (subprocess.CalledProcessError, OSError):
         return False
     return tool.wait_until_available(config)

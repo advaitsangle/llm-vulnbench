@@ -121,3 +121,21 @@ def test_zap_declares_a_startup_wait_and_semgrep_does_not():
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+def test_install_command_static_and_factory():
+    assert _tool(install_cmd=("true",)).install_command() == ("true",)
+    assert _tool().install_command() is None
+    # A factory is consulted at ask time, so its answer can change after import.
+    docker_up = {"present": False}
+    tool = Tool(key="t", label="t", hint="h", check=lambda _c: False,
+                install_cmd_factory=lambda: ("up",) if docker_up["present"] else None)
+    assert tool.install_command() is None
+    docker_up["present"] = True
+    assert tool.install_command() == ("up",)
+
+
+def test_run_install_uses_factory_command():
+    tool = Tool(key="t", label="t", hint="h", check=lambda _c: True,
+                install_cmd_factory=lambda: None)
+    assert run_install(tool) is False  # nothing to run right now
