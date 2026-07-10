@@ -231,3 +231,25 @@ def test_cli_targets_ctrl_c_is_clean(tmp_path, monkeypatch, capsys):
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+def test_targets_root_env_then_checkout_then_home(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    # 1) explicit env override wins outright
+    monkeypatch.setenv("VULNBENCH_TARGETS_DIR", str(tmp_path / "env"))
+    assert suite.targets_root() == tmp_path / "env"
+    monkeypatch.delenv("VULNBENCH_TARGETS_DIR")
+
+    # 2) running from a repo checkout (pyproject.toml beside the package) -> <repo>/targets
+    checkout_pkg = tmp_path / "repo" / "vulnbench"
+    checkout_pkg.mkdir(parents=True)
+    (tmp_path / "repo" / "pyproject.toml").write_text("")
+    monkeypatch.setattr(suite, "_PKG_DIR", checkout_pkg)
+    assert suite.targets_root() == tmp_path / "repo" / "targets"
+
+    # 3) pip-installed (parent is site-packages): clones must NOT land there
+    installed_pkg = tmp_path / "site-packages" / "vulnbench"
+    installed_pkg.mkdir(parents=True)
+    monkeypatch.setattr(suite, "_PKG_DIR", installed_pkg)
+    assert suite.targets_root() == Path.home() / ".vulnbench" / "targets"
