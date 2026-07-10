@@ -276,3 +276,45 @@ def test_write_scorecard_also_writes_a_findings_file(monkeypatch, tmp_path):
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+# --- model-spec validation & per-cell backend failure ------------------------------
+
+def test_is_valid_spec_grammar():
+    from vulnbench.models import is_valid_spec
+
+    assert is_valid_spec("mock")
+    assert is_valid_spec("local:qwen2.5-coder:14b")
+    assert is_valid_spec("local")
+    assert is_valid_spec("api:anthropic:claude-opus-4-8")
+    assert not is_valid_spec("api:openai:gpt")
+    assert not is_valid_spec("bogus:thing")
+    assert not is_valid_spec("")
+
+
+def test_custom_specs_reprompt_until_valid(monkeypatch, capsys):
+    answers = iter(["bogus:thing local:ok", "mock local:ok"])
+    monkeypatch.setattr(wizard, "prompt", lambda *a, **kw: next(answers))
+    assert wizard._prompt_custom_specs() == ["mock", "local:ok"]
+    assert "unrecognized spec(s): bogus:thing" in capsys.readouterr().out
+
+
+def test_unbuildable_backend_fails_its_cells_not_the_sweep(tmp_path, monkeypatch):
+    from vulnbench.report import Reporter
+    from vulnbench.wizard import RunConfig, _run_configs
+
+    monkeypatch.chdir(tmp_path)  # keep runs/ checkpoints out of the repo
+    target = Target(name="t", kind=TargetKind.BENCHMARK, source_path=str(tmp_path))
+
+    def boom(spec):
+        raise RuntimeError("Set ANTHROPIC_API_KEY or pass api_key=...")
+
+    monkeypatch.setattr(wizard, "build_backend", boom)
+    configs = [RunConfig(target, "B3", "api:anthropic:claude-opus-4-8"),
+               RunConfig(target, "A1", "api:anthropic:claude-opus-4-8")]
+    records, findings, reused = _run_configs(
+        configs, {}, Reporter(pretty=False), fresh=True
+    )
+    assert [r.error is not None for r in records] == [True, True]
+    assert "ANTHROPIC_API_KEY" in records[0].error
+    assert findings == [] and reused == 0

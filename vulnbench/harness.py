@@ -45,6 +45,24 @@ class RunRecord:
     def to_dict(self) -> dict:
         return asdict(self)
 
+    @classmethod
+    def failed(
+        cls,
+        target: str,
+        condition: str,
+        model: str | None,
+        error: str,
+        *,
+        seconds: float = 0.0,
+        provenance: dict | None = None,
+    ) -> RunRecord:
+        """A record for a cell that produced no findings because it errored."""
+        return cls(
+            target=target, condition=condition, model=model, metrics=None,
+            input_tokens=0, output_tokens=0, seconds=seconds, model_seconds=0.0,
+            n_findings=0, provenance=provenance or {}, error=error,
+        )
+
 
 def _provenance(config: dict | None) -> dict:
     """Capture what produced a scorecard so a scored run is reproducible.
@@ -86,18 +104,10 @@ def run_one(
     except Exception as exc:  # surface as a record, don't crash the whole matrix
         if debug:
             raise
-        record = RunRecord(
-            target=target.name,
-            condition=condition_id,
-            model=model.name if model else None,
-            metrics=None,
-            input_tokens=0,
-            output_tokens=0,
-            seconds=time.perf_counter() - start,
-            model_seconds=0.0,
-            n_findings=0,
-            provenance=prov,
-            error=f"{type(exc).__name__}: {exc}",
+        record = RunRecord.failed(
+            target.name, condition_id, model.name if model else None,
+            f"{type(exc).__name__}: {exc}",
+            seconds=time.perf_counter() - start, provenance=prov,
         )
         return record, []
 
