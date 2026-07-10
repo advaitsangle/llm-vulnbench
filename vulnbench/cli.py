@@ -96,7 +96,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
     if args.scan_in:
         config["scan_in"] = args.scan_in
     # Smoke test (--sample): one seeded random slice shared by every condition.
-    if args.sample:
+    if args.sample is not None:
+        if args.sample <= 0:
+            return _usage_error(f"--sample must be a positive number of files, got {args.sample}")
         config["sample_files"] = args.sample
     if args.sample_seed is not None:
         config["sample_seed"] = args.sample_seed
