@@ -39,18 +39,26 @@ def load_expected_results(csv_path: str) -> dict[str, ExpectedCase]:
     """Parse an ``expectedresults-*.csv`` into ``{test_case: ExpectedCase}``."""
     expected: dict[str, ExpectedCase] = {}
     with open(csv_path, newline="", encoding="utf-8") as fh:
-        for row in csv.reader(fh):
+        for lineno, row in enumerate(csv.reader(fh), start=1):
             if not row or row[0].lstrip().startswith("#"):
                 continue  # skip the header/comment line
             name = row[0].strip()
             if not name:
                 continue
-            expected[name] = ExpectedCase(
-                test_case=name,
-                category=row[1].strip(),
-                is_real=row[2].strip().lower() == "true",
-                cwe=int(row[3]),
-            )
+            try:
+                expected[name] = ExpectedCase(
+                    test_case=name,
+                    category=row[1].strip(),
+                    is_real=row[2].strip().lower() == "true",
+                    cwe=int(row[3]),
+                )
+            except (IndexError, ValueError) as exc:
+                # Fail loudly (silently skipping ground-truth rows would skew every
+                # score) but say where, so a hand-edited CSV is fixable in one step.
+                raise ValueError(
+                    f"{csv_path}:{lineno}: malformed expectedresults row {row!r} — "
+                    f"expected 'name,category,true|false,cwe' ({exc})"
+                ) from exc
     return expected
 
 
