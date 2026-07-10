@@ -412,11 +412,13 @@ def _run_configs(configs: list[RunConfig], config: dict, reporter: Reporter,
 
     with reporter.track(len(configs)) as tracker:
         for cfg in configs:
-            tracker.start(cfg.condition_id, cfg.target.name)
             spec = cfg.model_spec
             ckpt = _checkpoint_for(cfg, config, checkpoints, fresh=fresh)
 
+            # Consult the checkpoint before announcing the cell, so a cached one
+            # doesn't claim to be running.
             cached = ckpt.get(cfg.condition_id)
+            tracker.start(cfg.condition_id, cfg.target.name, resumed=cached is not None)
             if cached is not None:
                 record, findings = cached
                 reused += 1
