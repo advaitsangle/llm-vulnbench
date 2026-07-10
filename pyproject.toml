@@ -22,15 +22,15 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Security",
 ]
-
-[project.urls]
-Repository = "https://github.com/advaitsangle/llm-vulnbench"
-Issues = "https://github.com/advaitsangle/llm-vulnbench/issues"
 dependencies = [
     # Stdlib-only core. Backends/scanners shell out or use HTTP via urllib,
     # so the harness imports and runs with zero third-party deps installed.
     # Optional extras below enable richer backends.
 ]
+
+[project.urls]
+Repository = "https://github.com/advaitsangle/llm-vulnbench"
+Issues = "https://github.com/advaitsangle/llm-vulnbench/issues"
 
 [project.optional-dependencies]
 anthropic = ["anthropic>=0.40"]
