@@ -84,13 +84,18 @@ def parse_findings(text: str, source_condition: str) -> list[Finding]:
     obj = _extract_json_object(text)
     if obj is None:
         return []
+    items = obj.get("findings")
+    if not isinstance(items, list):
+        return []  # e.g. a dict or prose where the array should be
     findings: list[Finding] = []
-    for item in obj.get("findings", []):
+    for item in items:
+        if not isinstance(item, dict):
+            continue  # a bare string/number can't carry a finding; skip it
         loc = _location_from(item)
         verdict = item.get("verdict")
         findings.append(
             Finding(
-                vuln_class=int(item.get("cwe") or 0),
+                vuln_class=_cwe_id(item.get("cwe")),
                 location=loc,
                 source_condition=source_condition,
                 confidence=_clamp(item.get("confidence", 0.5)),
@@ -111,6 +116,21 @@ def parse_findings(text: str, source_condition: str) -> list[Finding]:
 
 
 _VERDICTS = {v.value for v in Verdict}
+
+_CWE_DIGITS_RE = re.compile(r"\d+")
+
+
+def _cwe_id(x: object) -> int:
+    """Coerce a model-reported CWE (89, "89", "CWE-89") to its integer id; 0 = unknown.
+
+    The contract asks for a bare integer, but models routinely echo the label form —
+    that must degrade to the right id, not crash a run mid-sweep.
+    """
+    try:
+        return int(x)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        m = _CWE_DIGITS_RE.search(str(x or ""))
+        return int(m.group(0)) if m else 0
 
 
 def _location_from(item: dict) -> Location:

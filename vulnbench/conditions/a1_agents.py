@@ -304,9 +304,12 @@ def _parse_scout(text: str) -> list[dict]:
     obj = _extract_json_object(text)
     if not obj:
         return []
+    items = obj.get("files")
+    if not isinstance(items, list):
+        return []
     out: list[dict] = []
-    for item in obj.get("files", []):
-        if not isinstance(item, dict) or not item.get("path"):
+    for item in items:
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
             continue
         out.append(
             {
