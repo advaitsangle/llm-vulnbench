@@ -4,7 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vulnbench"
-version = "0.1.0"
+# Version is single-sourced from vulnbench/__init__.py (__version__): the harness
+# stamps it into scorecard provenance, so code is the natural home for it.
+dynamic = ["version"]
 description = "Benchmark harness for LLM-augmented web vulnerability detection (SAST/DAST/LLM conditions, shared scoring)."
 requires-python = ">=3.11"
 readme = "README.md"
@@ -39,6 +41,9 @@ dev = ["pytest>=8", "ruff>=0.5", "rich>=13"]
 
 [project.scripts]
 vulnbench = "vulnbench.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "vulnbench.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["."]
