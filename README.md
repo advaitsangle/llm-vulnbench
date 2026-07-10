@@ -187,8 +187,9 @@ backend" recipe in [ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnben
 
 Conditions accept optional tuning knobs as a JSON object. Each condition *declares* the
 knobs it understands, so the interactive session offers exactly the right ones with their
-defaults filled in. On the command line, **unknown keys are silently ignored** — double-check
-spelling (`max_files`, not `maxfiles`).
+defaults filled in, and on the command line a key that none of the chosen conditions
+declare is **rejected up front** (so a typo like `maxfiles` can't silently run with the
+default).
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
