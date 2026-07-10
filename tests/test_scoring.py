@@ -58,3 +58,17 @@ def test_unscanned_real_case_still_counts_without_scope():
     m = score_benchmark(findings, _expected())
     assert m.fn == 1
     assert m.recall == 0.5
+
+
+def test_malformed_ground_truth_row_reports_file_and_line(tmp_path):
+    import pytest
+
+    from vulnbench.scoring.owasp_benchmark import load_expected_results
+
+    gt = tmp_path / "gt.csv"
+    gt.write_text("# header\nBenchmarkTest00001,sqli,true,not-a-number\n")
+    with pytest.raises(ValueError, match=r"gt\.csv:2.*not-a-number"):
+        load_expected_results(str(gt))
+    gt.write_text("BenchmarkTest00001,sqli\n")  # too few columns
+    with pytest.raises(ValueError, match=r"gt\.csv:1"):
+        load_expected_results(str(gt))
