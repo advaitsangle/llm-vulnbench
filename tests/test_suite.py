@@ -106,7 +106,7 @@ def test_resolve_installs_fresh_when_unlinked_batch(tmp_path, monkeypatch):
     monkeypatch.setattr(suite, "_is_interactive", lambda: False)
     app = _app(path="myapp")
     reg = {}
-    status = suite._resolve_app(app, tmp_path, reg, update=False)
+    status = suite.resolve_app(app, tmp_path, reg, update=False)
     assert "installed" in status
     assert calls and calls[0][:2] == ["git", "clone"]
     assert reg["x"] == str(tmp_path / "myapp")  # reference recorded
@@ -122,7 +122,7 @@ def test_resolve_point_to_existing_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(suite.subprocess, "run", lambda cmd, **kw: ran.append(cmd))
     app = _app(path="myapp")
     reg = {}
-    status = suite._resolve_app(app, tmp_path, reg, update=False)
+    status = suite.resolve_app(app, tmp_path, reg, update=False)
     assert "linked" in status
     assert reg["x"] == str(existing.resolve())
     assert ran == []  # pointing at an existing copy clones nothing
@@ -133,7 +133,7 @@ def test_resolve_point_to_missing_dir_skips(tmp_path, monkeypatch):
     monkeypatch.setattr(suite, "_prompt", _seq(["e", str(tmp_path / "nope")]))
     app = _app(path="myapp")
     reg = {}
-    status = suite._resolve_app(app, tmp_path, reg, update=False)
+    status = suite.resolve_app(app, tmp_path, reg, update=False)
     assert "skipped" in status
     assert "x" not in reg
 
@@ -144,7 +144,7 @@ def test_resolve_update_pulls_a_git_link(tmp_path, monkeypatch):
     monkeypatch.setattr(suite.subprocess, "run", lambda cmd, **kw: ran.append(cmd))
     app = _app(path="myapp")
     reg = {}
-    status = suite._resolve_app(app, tmp_path, reg, update=True)
+    status = suite.resolve_app(app, tmp_path, reg, update=True)
     assert "updated" in status
     assert ran and ran[0][:2] == ["git", "-C"]
 

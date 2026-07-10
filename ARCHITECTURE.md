@@ -138,7 +138,8 @@ vulnbench/
     __init__.py         REGISTRY {id -> class}, get_condition()
     b1_semgrep.py       B1  SAST baseline (Semgrep)
     b2_zap.py           B2  DAST baseline (OWASP ZAP)
-    b3_llm.py           B3  LLM-only — also holds shared source-walk helpers
+    b3_llm.py           B3  LLM-only (flat per-file pass)
+    source_files.py     shared source-tree walking/reading + its knobs
     c1_llm_semgrep.py   C1  LLM triages Semgrep findings
     c2_llm_zap.py       C2  LLM triages ZAP findings
     c3_llm_rules.py     C3  LLM authors Semgrep rules, then Semgrep runs them
@@ -245,10 +246,10 @@ No condition or scoring code changes.
   of the chosen conditions declare (so a typo like `max_file` vs `max_files` errors up
   front instead of silently running with the default); the wizard only offers declared
   knobs in the first place. Full list: the README's Configuration table.
-- **Shared helpers live with their first user.** Source-tree walking/reading
-  (`_iter_source_files`, `_read`, `SCAN_KNOBS`) lives in `b3_llm.py`; the ZAP driver
-  (`_run_zap_from_config`, `ZAP_KNOBS`) in `b2_zap.py`; JSON parsing in `llm_common.py`.
-  Other conditions import them. (Known rough edge — they're effectively shared utilities.)
+- **Shared helpers have real homes.** Source-tree walking/reading (`iter_source_files`,
+  `read_capped`, `SCAN_KNOBS`) lives in `conditions/source_files.py`; JSON parsing in
+  `llm_common.py`. The ZAP driver (`_run_zap_from_config`, `ZAP_KNOBS`) still lives with
+  its first user in `b2_zap.py` — C2 imports it — since it's only shared by that pair.
 - **`validate()` fails fast, and mostly writes itself.** Set `needs_model` /
   `needs_source` / `needs_url` and the base class raises an actionable error before any
   expensive work — no condition below needs its own `validate()`. Override it only when a

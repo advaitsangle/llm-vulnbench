@@ -39,7 +39,6 @@ from collections import defaultdict
 from ..corpus import Target
 from ..models import Usage
 from ..schema import Finding, Location, Verdict, benchmark_case_of
-from .b3_llm import SCAN_KNOBS, _iter_source_files, _read
 from .base import Condition, ConditionContext, ConditionResult, Knob
 from .llm_common import (
     OUTPUT_CONTRACT,
@@ -49,6 +48,7 @@ from .llm_common import (
     _int_or_none,
     parse_findings,
 )
+from .source_files import SCAN_KNOBS, iter_source_files, read_capped
 
 # --- Role 1: Scout (triage) -------------------------------------------------
 
@@ -115,7 +115,7 @@ class A1MultiAgent(Condition):
         do_triage = bool(self.cfg(ctx, "triage"))
         do_verify = bool(self.cfg(ctx, "verify"))
 
-        paths = list(_iter_source_files(target.source_path, max_files))
+        paths = list(iter_source_files(target.source_path, max_files))
         # Denominator is every file surveyed — same as B3 at this cap — so skipping
         # a file for deep-dive is scored as a missed case, not hidden from scoring.
         scored_cases = {tc for p in paths if (tc := benchmark_case_of(p)) is not None}
@@ -178,7 +178,7 @@ class A1MultiAgent(Condition):
             by_base = _unique_basenames(chunk)
             blocks = []
             for p in chunk:
-                head, _ = _read(p, head_bytes)
+                head, _ = read_capped(p, head_bytes)
                 blocks.append(f"### FILE: {p}\n```\n{head}\n```")
             messages = [
                 {"role": "system", "content": SCOUT_SYSTEM},
@@ -202,7 +202,7 @@ class A1MultiAgent(Condition):
         candidates: list[Finding] = []
         usage = Usage()
         for p in paths:
-            code, _ = _read(p, max_bytes)
+            code, _ = read_capped(p, max_bytes)
             if not code:
                 continue
             messages = [
@@ -228,7 +228,7 @@ class A1MultiAgent(Condition):
         kept: list[Finding] = []
         usage = Usage()
         for path, group in by_file.items():
-            code, _ = _read(path, max_bytes) if path else ("", False)
+            code, _ = read_capped(path, max_bytes) if path else ("", False)
             messages = [
                 {"role": "system", "content": VERIFIER_SYSTEM},
                 {"role": "user", "content": _verify_prompt(path, code, group)},

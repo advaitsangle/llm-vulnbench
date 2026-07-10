@@ -38,8 +38,8 @@ from ..scanners import run_semgrep, validate_rules
 from ..schema import benchmark_case_of
 from ..scoring import benchmark_cases_in_tree
 from ..scoring.owasp_benchmark import load_expected_results
-from .b3_llm import _iter_source_files, _read
 from .base import Condition, ConditionContext, ConditionResult, Knob
+from .source_files import iter_source_files, read_capped
 
 #: Keep authored YAML off the prompt budget: a few small examples beat one huge file.
 DEFAULT_AUTHOR_FILES = 8
@@ -189,8 +189,8 @@ class C3LLMRules(Condition):
         cwes = self._cwe_by_case(target)
 
         examples: list[str] = []
-        for path in _iter_source_files(target.source_path, n):
-            code, _ = _read(path, max_bytes)
+        for path in iter_source_files(target.source_path, n):
+            code, _ = read_capped(path, max_bytes)
             if not code:
                 continue
             tc = benchmark_case_of(path)

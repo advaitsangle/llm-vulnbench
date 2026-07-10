@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from ..schema import Finding, Location
 
 
-def _resolve_semgrep() -> str | None:
+def resolve_semgrep() -> str | None:
     """Find the semgrep executable.
 
     Checks PATH first, then the directory of the running interpreter, so a
@@ -40,7 +40,7 @@ def _resolve_semgrep() -> str | None:
 
 def _require_semgrep() -> str:
     """Resolve semgrep or raise an actionable install hint."""
-    semgrep_bin = _resolve_semgrep()
+    semgrep_bin = resolve_semgrep()
     if semgrep_bin is None:
         raise FileNotFoundError(
             "semgrep not found on PATH or next to the Python interpreter. "
