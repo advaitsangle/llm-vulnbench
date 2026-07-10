@@ -10,6 +10,7 @@ condition happened to need them first.
 from __future__ import annotations
 
 import os
+import random
 
 from .base import Knob
 
@@ -23,6 +24,44 @@ SCAN_KNOBS = (
     Knob("max_file_bytes", "int", 60_000,
          help="truncate each file past this many bytes"),
 )
+
+
+#: The smoke-test sample, surfaced as the ``--sample`` CLI flag (advanced: it is set
+#: by that flag, not tuned per condition in the wizard). Every source-based condition
+#: declares these so one flag restricts a whole sweep to the same random slice.
+SAMPLE_KNOBS = (
+    Knob("sample_files", "int", 0, advanced=True,
+         help="smoke test: examine only this many randomly sampled source files (0 = off)"),
+    Knob("sample_seed", "int", 42, advanced=True,
+         help="RNG seed for sample_files, so a smoke run is reproducible"),
+)
+
+
+def sample_source_files(root: str, k: int, seed: int) -> list[str]:
+    """A seeded random sample of ``k`` code files under ``root`` (all, if fewer).
+
+    Seeded so the "random" slice is the *same* slice on every machine and re-run —
+    a smoke result must be reproducible, and a resumed checkpoint must be comparing
+    against the same files. Sorted afterwards so downstream iteration order (and
+    therefore prompts, traces, and diffs) stays deterministic too.
+    """
+    paths = list(iter_source_files(root, None))
+    if k >= len(paths):
+        return paths
+    return sorted(random.Random(seed).sample(paths, k))
+
+
+def sampled_paths_for(condition, ctx, root: str) -> list[str] | None:
+    """The smoke-test slice for this run, or ``None`` when sampling is off.
+
+    Reads the :data:`SAMPLE_KNOBS` values through the condition so the knob names
+    live in one place; every condition applies the same seed to the same walk and
+    therefore examines the same files.
+    """
+    k = int(condition.cfg(ctx, "sample_files"))
+    if not k:
+        return None
+    return sample_source_files(root, k, int(condition.cfg(ctx, "sample_seed")))
 
 
 def iter_source_files(root: str, cap: int | None):

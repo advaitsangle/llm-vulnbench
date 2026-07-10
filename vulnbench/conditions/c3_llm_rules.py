@@ -36,10 +36,10 @@ from ..corpus import Target, TargetKind
 from ..models import Usage
 from ..scanners import run_semgrep, validate_rules
 from ..schema import benchmark_case_of
-from ..scoring import benchmark_cases_in_tree
+from ..scoring import benchmark_cases_in_tree, benchmark_cases_of
 from ..scoring.owasp_benchmark import load_expected_results
 from .base import Condition, ConditionContext, ConditionResult, Knob
-from .source_files import iter_source_files, read_capped
+from .source_files import SAMPLE_KNOBS, iter_source_files, read_capped, sampled_paths_for
 
 #: Keep authored YAML off the prompt budget: a few small examples beat one huge file.
 DEFAULT_AUTHOR_FILES = 8
@@ -124,7 +124,7 @@ class C3LLMRules(Condition):
              help="author rules, write them here, and stop before scanning"),
         Knob("rules_in", "path", None, advanced=True,
              help="skip authoring; scan with the ruleset loaded from here (needs no model)"),
-    )
+    ) + SAMPLE_KNOBS
 
     def validate(self, target: Target, ctx: ConditionContext) -> None:
         # rules_in is deterministic Semgrep with no model; everything else authors.
@@ -188,8 +188,14 @@ class C3LLMRules(Condition):
         max_bytes = int(self.cfg(ctx, "author_max_bytes"))
         cwes = self._cwe_by_case(target)
 
+        # --sample: author from the smoke slice (first n of it) so the same files
+        # are studied that the scan phase will be scored on.
+        sampled = sampled_paths_for(self, ctx, target.source_path)
+        author_paths = sampled[:n] if sampled is not None else iter_source_files(
+            target.source_path, n
+        )
         examples: list[str] = []
-        for path in iter_source_files(target.source_path, n):
+        for path in author_paths:
             code, _ = read_capped(path, max_bytes)
             if not code:
                 continue
@@ -221,15 +227,18 @@ class C3LLMRules(Condition):
         authored_from: str | None,
     ) -> ConditionResult:
         """Run Semgrep deterministically with the authored rules and score it."""
+        sampled = sampled_paths_for(self, ctx, target.source_path)
         semgrep = run_semgrep(
-            target.source_path,
+            sampled if sampled is not None else target.source_path,
             config=rules_path,
             source_condition=self.id,
             timeout=float(self.cfg(ctx, "semgrep_timeout")),
         )
         scored_cases = None
         if target.kind is TargetKind.BENCHMARK:
-            scored_cases = benchmark_cases_in_tree(target.source_path) or None
+            in_scope = (benchmark_cases_of(sampled) if sampled is not None
+                        else benchmark_cases_in_tree(target.source_path))
+            scored_cases = in_scope or None
         return ConditionResult(
             findings=semgrep.findings,
             trace={

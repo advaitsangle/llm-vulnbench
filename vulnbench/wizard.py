@@ -1,8 +1,9 @@
 """The no-argument ``vulnbench`` entry point: build a comparative run interactively.
 
 Running ``vulnbench`` with no subcommand walks the user through the axes of a sweep —
-models, targets, conditions, and whichever knobs the chosen conditions happen to
-declare — then runs the cartesian product and prints one comparative matrix.
+models, targets, conditions, whether to smoke-test or run in full, and whichever knobs
+the chosen conditions happen to declare — then runs the cartesian product and prints one
+comparative matrix.
 
 Nothing here enumerates conditions, knobs, or apps by name. The condition ladder is
 read from :data:`vulnbench.conditions.REGISTRY`, each condition's options from its
@@ -248,12 +249,71 @@ def _choose_conditions() -> list[str] | None:
     return _pick("3. Select testing scenarios (conditions)", rows, ids)
 
 
+#: Files a smoke run examines when the user just hits enter.
+DEFAULT_SAMPLE_FILES = 10
+
+
+def supports_sampling(condition_ids: list[str]) -> bool:
+    """True when some chosen condition reads a source tree, so a sample means something.
+
+    Asked of the conditions rather than hard-coded: a DAST cell (B2/C2) attacks a URL
+    and has no files to sample, so offering it a smoke slice would be a lie.
+    """
+    return any(
+        any(k.name == "sample_files" for k in get_condition(cid).all_knobs())
+        for cid in condition_ids
+    )
+
+
+def _choose_scope(condition_ids: list[str]) -> dict | None:
+    """Smoke test (a seeded random slice) or a full run? Returns config overrides.
+
+    This is the first question worth asking about a sweep: a full OWASP Benchmark pass
+    is 2740 files per condition, which is hours on a local 14B model. A smoke run proves
+    the whole matrix is wired up in seconds. ``None`` = cancelled.
+    """
+    if not supports_sampling(condition_ids):
+        return {}
+    print(f"\n{paint('4. Run scope', 'blue', bold=True)}")
+    rows = [
+        f"{paint('full run', bold=True)}  "
+        f"{paint('every source file in the target (the scored configuration)', dim=True)}",
+        f"{paint('smoke test', bold=True)}  "
+        f"{paint('a seeded random sample of files — fast and reproducible', dim=True)}",
+    ]
+    idx = select(rows, preselected={0})
+    if idx is None:
+        return None
+    if 1 not in idx:
+        return {}
+
+    n = _prompt_positive_int("  how many files to sample", DEFAULT_SAMPLE_FILES)
+    seed = _prompt_positive_int("  random seed (same seed = same files)", 42)
+    print(paint(f"  smoke test: {n} file(s), seed {seed} — every condition sees the same slice",
+                dim=True))
+    return {"sample_files": n, "sample_seed": seed}
+
+
+def _prompt_positive_int(question: str, default: int) -> int:
+    """Read a positive int, re-prompting until one is given. Blank takes the default."""
+    while True:
+        raw = prompt(f"{question} [{default}]: ", default=str(default))
+        try:
+            value = int(raw)
+        except ValueError:
+            print(paint(f"    not a number: {raw!r}", "red"))
+            continue
+        if value > 0:
+            return value
+        print(paint("    must be greater than zero", "red"))
+
+
 def _choose_knobs(condition_ids: list[str]) -> dict | None:
     """Offer the union of the chosen conditions' declared knobs; return overrides."""
     available = tunable_knobs(condition_ids)
     if not available:
         return {}
-    print(f"\n{paint('4. Optional knobs', 'blue', bold=True)}")
+    print(f"\n{paint('5. Optional knobs', 'blue', bold=True)}")
     if not prompt_yes_no("  Tune any condition knobs?", default=False):
         return {}
 
@@ -379,7 +439,7 @@ def _preflight(condition_ids: list[str], model_specs: list[str], config: dict) -
 
 
 def _confirm(configs: list[RunConfig], config: dict, n_models: int) -> bool:
-    print(f"\n{paint('5. Plan', 'blue', bold=True)}")
+    print(f"\n{paint('6. Plan', 'blue', bold=True)}")
     for c in configs:
         print(f"  {paint(c.condition_id, bold=True):16} {c.target.name}  "
               f"{paint(c.model_name, dim=True)}")
@@ -541,9 +601,16 @@ def _run_wizard(args) -> int:
         print(paint("Nothing selected.", dim=True))
         return 0
 
+    # Scope before knobs: "smoke or full" is the coarse decision, and a smoke run
+    # supplies sample_files/sample_seed that the knob step must not have to explain.
+    scope = _choose_scope(conditions)
+    if scope is None:
+        return _cancelled()
+
     config = _choose_knobs(conditions)
     if config is None:
         return _cancelled()
+    config = {**scope, **config}
 
     # Knobs first: zap_url may redirect where we look for the ZAP daemon.
     if not _preflight(conditions, models, config):

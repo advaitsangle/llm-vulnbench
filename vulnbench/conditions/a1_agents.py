@@ -48,7 +48,13 @@ from .llm_common import (
     _int_or_none,
     parse_findings,
 )
-from .source_files import SCAN_KNOBS, iter_source_files, read_capped
+from .source_files import (
+    SAMPLE_KNOBS,
+    SCAN_KNOBS,
+    iter_source_files,
+    read_capped,
+    sampled_paths_for,
+)
 
 # --- Role 1: Scout (triage) -------------------------------------------------
 
@@ -93,7 +99,7 @@ class A1MultiAgent(Condition):
     label = "Multi-agent roles (scout/hunt/verify)"
     needs_model = True
     needs_source = True
-    knobs = SCAN_KNOBS + (
+    knobs = SCAN_KNOBS + SAMPLE_KNOBS + (
         Knob("triage", "bool", True,
              help="run the scout role (off = a flat B3-like pass, plus the verifier)"),
         Knob("verify", "bool", True,
@@ -115,7 +121,11 @@ class A1MultiAgent(Condition):
         do_triage = bool(self.cfg(ctx, "triage"))
         do_verify = bool(self.cfg(ctx, "verify"))
 
-        paths = list(iter_source_files(target.source_path, max_files))
+        # --sample overrides max_files: the smoke slice *is* the survey set.
+        sampled = sampled_paths_for(self, ctx, target.source_path)
+        paths = sampled if sampled is not None else list(
+            iter_source_files(target.source_path, max_files)
+        )
         # Denominator is every file surveyed — same as B3 at this cap — so skipping
         # a file for deep-dive is scored as a missed case, not hidden from scoring.
         scored_cases = {tc for p in paths if (tc := benchmark_case_of(p)) is not None}

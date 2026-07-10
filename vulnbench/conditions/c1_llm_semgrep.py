@@ -21,11 +21,11 @@ from ..corpus import Target, TargetKind
 from ..models import Usage
 from ..scanners import run_semgrep
 from ..schema import Finding, Location
-from ..scoring import benchmark_cases_in_tree
+from ..scoring import benchmark_cases_in_tree, benchmark_cases_of
 from .b1_semgrep import B1Semgrep
 from .base import ConditionContext, ConditionResult, Knob, TriageCondition
 from .llm_common import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
-from .source_files import read_capped
+from .source_files import SAMPLE_KNOBS, read_capped, sampled_paths_for
 
 
 class C1LLMSemgrep(TriageCondition):
@@ -40,7 +40,7 @@ class C1LLMSemgrep(TriageCondition):
         B1Semgrep.knob("semgrep_ruleset"),  # C1's scan phase *is* B1's scan
         Knob("max_file_bytes", "int", 60_000,
              help="truncate each file past this many bytes when showing it to the model"),
-    )
+    ) + SAMPLE_KNOBS
 
     def scope(self, target: Target, ctx: ConditionContext) -> set[str] | None:
         # Semgrep scanned the whole source tree; the in-scope Benchmark cases are
@@ -50,15 +50,23 @@ class C1LLMSemgrep(TriageCondition):
             return None
         if not target.source_path:
             return None
+        sampled = sampled_paths_for(self, ctx, target.source_path)
+        if sampled is not None:  # same seed => the exact slice the scan saw
+            return benchmark_cases_of(sampled) or None
         return benchmark_cases_in_tree(target.source_path) or None
 
     def scan(self, target: Target, ctx: ConditionContext) -> tuple[list[Finding], dict]:
         ruleset = self.cfg(ctx, "semgrep_ruleset")
-        semgrep = run_semgrep(target.source_path, config=ruleset, source_condition=self.id)
+        sampled = sampled_paths_for(self, ctx, target.source_path)
+        semgrep = run_semgrep(
+            sampled if sampled is not None else target.source_path,
+            config=ruleset, source_condition=self.id,
+        )
         trace = {
             "ruleset": ruleset,
             "semgrep_version": semgrep.version,
             "semgrep_raw_findings": len(semgrep.findings),
+            **({"sampled_files": len(sampled)} if sampled is not None else {}),
         }
         return semgrep.findings, trace
 

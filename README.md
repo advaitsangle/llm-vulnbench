@@ -88,7 +88,7 @@ just says `vulnbench …`.
 ### Quick start — just run `vulnbench`
 
 With no arguments, vulnbench starts an **interactive session** that builds a comparative
-run. It walks you through five steps, every one multi-select:
+run. It walks you through six steps, every one multi-select:
 
 ```bash
 vulnbench          # ↑/↓ move · space toggle · a toggle-all · enter confirm · q cancel
@@ -99,8 +99,9 @@ vulnbench          # ↑/↓ move · space toggle · a toggle-all · enter confi
 2. **Targets** — the app catalog. Anything not yet on disk drops into the same
    point-or-install flow as `vulnbench targets`, so you never dead-end on a missing checkout.
 3. **Conditions** — the ladder (B1, C1, A1, …).
-4. **Knobs** — only the ones your chosen conditions actually declare.
-5. **Confirm** — it prints the plan, then runs it.
+4. **Run scope** — a **smoke test** (a seeded random sample of source files) or a **full run**.
+5. **Knobs** — only the ones your chosen conditions actually declare.
+6. **Confirm** — it prints the plan, then runs it.
 
 It then **preflights external tools** (offering to `pip install semgrep`, to start the ZAP
 daemon, or to point you at Ollama) and prints one comparative matrix: one row per
@@ -193,6 +194,7 @@ default).
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
+| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
 | `max_files` | B3, A1 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
 | `max_file_bytes` | B3, C1, A1 | 60000 | per-file read cap (truncation is recorded, not silent) |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
@@ -212,6 +214,34 @@ default).
 vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
     --model local:qwen2.5-coder:14b --config '{"max_files": 20, "max_file_bytes": 80000}'
 ```
+
+### Smoke test — `--sample N`
+
+A full OWASP Benchmark pass is 2740 files *per condition* — hours on a local 14B model.
+To check that a whole matrix is wired up correctly before committing to that, run every
+chosen condition against a small **random sample** of the source files:
+
+```bash
+# all the source-based conditions, against the same 10 randomly chosen files
+vulnbench run --condition B1 B3 C1 A1 --source ./src --ground-truth gt.csv \
+    --kind benchmark --model mock --sample 10
+```
+
+The sample is **seeded** (`--sample-seed`, default 42), so it's the same slice on every
+machine and every re-run — a smoke result is reproducible and a resumed checkpoint keeps
+comparing like with like. Every condition in the sweep sees the *same* files, which is
+what makes the row-to-row comparison meaningful. Scoring stays honest: only the sampled
+test cases count toward the denominator, so recall isn't buried by the files nobody
+looked at.
+
+```bash
+vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock \
+    --sample 25 --sample-seed 7        # a different, equally reproducible slice
+```
+
+Sampling applies to the conditions that read source (B1, B3, C1, C3, A1); the DAST cells
+(B2, C2) attack a running URL and ignore it. In the interactive session this is step 4,
+**Run scope** — pick *smoke test* or *full run*.
 
 ### Output: highlight on screen, detail in files
 
