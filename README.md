@@ -14,7 +14,7 @@ conditions you care about need; point it at whatever benchmark you have.
 
 > **Building on vulnbench?** Developer onboarding — the architecture, how to add a
 > condition / model / scorer, the dev loop, and the contribution workflow — lives in
-> **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+> **[ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnbench/blob/main/ARCHITECTURE.md)**.
 
 ## What it does
 
@@ -169,7 +169,7 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
 
 Want a provider that isn't here (OpenAI, vLLM, a self-hosted endpoint)? It's one small
 backend class behind the same `ModelBackend.complete()` interface — see the "add a model
-backend" recipe in [ARCHITECTURE.md](ARCHITECTURE.md). The conditions and scoring don't change.
+backend" recipe in [ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnbench/blob/main/ARCHITECTURE.md). The conditions and scoring don't change.
 
 > **Local model on a non-default host?** The `local:` backend talks to Ollama at
 > `http://localhost:11434` (Ollama's default). A custom host/port isn't a CLI flag yet —
@@ -257,7 +257,7 @@ The vulnerable apps under test are **never shipped with the repo** (they're larg
 and live in the gitignored `targets/` — or `~/.vulnbench/targets` for a
 pip-installed vulnbench). `vulnbench targets` is an opt-in manager
 for them — an arrow-key menu (↑/↓ move, space toggle, enter confirm, `q`/Ctrl-C
-cancel) over a catalog defined in [`vulnbench/targets.toml`](vulnbench/targets.toml):
+cancel) over a catalog defined in [`vulnbench/targets.toml`](https://github.com/advaitsangle/llm-vulnbench/blob/main/vulnbench/targets.toml):
 
 ```bash
 vulnbench targets            # interactive: pick apps, then point-or-install each
@@ -321,9 +321,9 @@ vulnbench run \
 > the cases they examined, so the recall number stays honest.
 
 For the **dynamic** conditions (B2/C2) the app has to be *running*; the Docker stack
-in [`deploy/`](deploy/README.md) builds the BenchmarkJava WAR and a ZAP daemon for you
+in [`deploy/`](https://github.com/advaitsangle/llm-vulnbench/blob/main/deploy/README.md) builds the BenchmarkJava WAR and a ZAP daemon for you
 (`docker compose -f deploy/docker-compose.yml up --build`).
 
 ## License
 
-[MIT](LICENSE).
+[MIT](https://github.com/advaitsangle/llm-vulnbench/blob/main/LICENSE).
