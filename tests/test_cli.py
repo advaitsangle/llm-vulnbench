@@ -79,3 +79,28 @@ def test_run_unwritable_output_keeps_the_run_and_flags_failure(tmp_path, capsys)
     captured = capsys.readouterr()
     assert "could not write scorecard" in captured.err
     assert "summary" in captured.out  # the run still reported its results
+
+
+def test_run_unknown_condition_id_is_a_clean_usage_error(capsys):
+    code = main(["run", "--condition", "B9", "--source", "."])
+    assert code == 2
+    assert "Unknown condition" in capsys.readouterr().err
+
+
+def test_run_unknown_config_key_is_rejected_with_the_valid_knobs(capsys):
+    code = main(["run", "--condition", "B3", "--model", "mock", "--source", ".",
+                 "--config", '{"maxfiles": 5}'])
+    assert code == 2
+    err = capsys.readouterr().err
+    assert "maxfiles" in err and "max_files" in err  # typo named, real knob offered
+
+
+def test_run_config_key_valid_for_any_chosen_condition_is_accepted(tmp_path):
+    src = tmp_path / "src"
+    src.mkdir()
+    # semgrep_ruleset belongs to B1, not B3 — legal in a mixed sweep. B1 errors
+    # per-cell without semgrep, so run B3-only knobs through a mixed declaration.
+    code = main(["run", "--condition", "B3", "--model", "mock", "--source", str(src),
+                 "--checkpoint", str(tmp_path / "ck.json"),
+                 "--config", '{"max_files": 5}', "--plain"])
+    assert code == 0

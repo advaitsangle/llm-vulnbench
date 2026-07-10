@@ -31,7 +31,7 @@ import json
 import sys
 
 from .checkpoint import Checkpoint, default_path, signature
-from .conditions import REGISTRY
+from .conditions import REGISTRY, get_condition
 from .corpus import Target, TargetKind
 from .harness import run_one
 from .models import build_backend
@@ -76,24 +76,36 @@ def _cmd_run(args: argparse.Namespace) -> int:
         base_url=args.url,
         ground_truth=args.ground_truth,
     )
-    # Validate the user-supplied bits before any work: a typo'd spec or config
-    # should cost one corrected command, not a traceback (or a partial run).
+    # Validate the user-supplied bits before any work: a typo'd condition, spec,
+    # or config should cost one corrected command, not a traceback (or a partial
+    # run that silently used a default because the knob name was misspelled).
+    try:
+        condition_classes = [get_condition(cid) for cid in args.condition]
+    except KeyError as exc:
+        return _usage_error(str(exc.args[0]))
     try:
         config = json.loads(args.config) if args.config else {}
     except json.JSONDecodeError as exc:
         return _usage_error(f"--config is not valid JSON ({exc}): {args.config!r}")
     if not isinstance(config, dict):
         return _usage_error(f"--config must be a JSON object, got {type(config).__name__}")
-    try:
-        model = build_backend(args.model) if args.model else None
-    except (ValueError, RuntimeError) as exc:
-        return _usage_error(str(exc))
     # Phased triage (C1/C2): --scan-out runs only the scanner and saves its
     # findings; --scan-in skips the scanner and triages those saved findings.
     if args.scan_out:
         config["scan_out"] = args.scan_out
     if args.scan_in:
         config["scan_in"] = args.scan_in
+    known_knobs = {k.name for cls in condition_classes for k in cls.all_knobs()}
+    unknown = sorted(set(config) - known_knobs)
+    if unknown:
+        return _usage_error(
+            f"unknown --config key(s) {', '.join(unknown)} — "
+            f"{'/'.join(args.condition)} accept(s): {', '.join(sorted(known_knobs))}"
+        )
+    try:
+        model = build_backend(args.model) if args.model else None
+    except (ValueError, RuntimeError) as exc:
+        return _usage_error(str(exc))
 
     # Pretty (rich) when attached to a TTY and not suppressed; plain otherwise.
     pretty = not args.plain and sys.stdout.isatty()

@@ -241,10 +241,10 @@ No condition or scoring code changes.
   the MRO, so `TriageCondition` hands `scan_out`/`scan_in` to C1 and C2 without either
   restating them. Mark plumbing knobs (file handoff between phases) `advanced=True` to keep
   them out of the wizard's tuning menu.
-- **`--config` is still a free-form dict.** **Unknown keys are silently ignored**, so a typo
-  (`max_file` vs `max_files`) won't error on the command line — it just runs with the
-  default. The wizard avoids this by only offering declared knobs. Full list: the README's
-  Configuration table.
+- **`--config` keys are checked against declared knobs.** The CLI rejects a key that none
+  of the chosen conditions declare (so a typo like `max_file` vs `max_files` errors up
+  front instead of silently running with the default); the wizard only offers declared
+  knobs in the first place. Full list: the README's Configuration table.
 - **Shared helpers live with their first user.** Source-tree walking/reading
   (`_iter_source_files`, `_read`, `SCAN_KNOBS`) lives in `b3_llm.py`; the ZAP driver
   (`_run_zap_from_config`, `ZAP_KNOBS`) in `b2_zap.py`; JSON parsing in `llm_common.py`.
