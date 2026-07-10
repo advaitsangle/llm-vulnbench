@@ -147,3 +147,10 @@ def test_sample_is_reproducible_across_runs_and_varies_by_seed(tmp_path):
 
     assert cases_for(42) == cases_for(42)
     assert cases_for(42) != cases_for(7)  # seed is part of the run signature
+
+
+def test_negative_sample_is_a_clean_usage_error(capsys):
+    code = main(["run", "--condition", "B3", "--model", "mock", "--source", ".",
+                 "--sample", "-5"])
+    assert code == 2
+    assert "positive number of files" in capsys.readouterr().err

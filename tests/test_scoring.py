@@ -94,3 +94,12 @@ def test_sample_larger_than_the_tree_returns_every_file(tmp_path):
     (tmp_path / "a.java").write_text("x")
     (tmp_path / "b.java").write_text("y")
     assert len(sample_source_files(str(tmp_path), 99, seed=1)) == 2
+
+
+def test_sample_rejects_a_negative_size(tmp_path):
+    import pytest
+
+    from vulnbench.conditions.source_files import sample_source_files
+
+    with pytest.raises(ValueError, match="must not be negative"):
+        sample_source_files(str(tmp_path), -5, seed=1)

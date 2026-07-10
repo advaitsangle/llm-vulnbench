@@ -46,3 +46,13 @@ def test_findings_from_semgrep_json():
     assert f.location.line == 12
     assert f.confidence == 0.9
     assert f.source_condition == "B1"
+
+
+def test_run_semgrep_refuses_an_empty_target_list():
+    """Semgrep with no path scans the CWD; an empty sample must never reach it."""
+    import pytest
+
+    from vulnbench.scanners.semgrep_runner import run_semgrep
+
+    with pytest.raises(ValueError, match="no scan targets"):
+        run_semgrep([], config="p/owasp-top-ten")

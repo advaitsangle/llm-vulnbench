@@ -45,6 +45,8 @@ def sample_source_files(root: str, k: int, seed: int) -> list[str]:
     against the same files. Sorted afterwards so downstream iteration order (and
     therefore prompts, traces, and diffs) stays deterministic too.
     """
+    if k < 0:
+        raise ValueError(f"sample size must not be negative, got {k}")
     paths = list(iter_source_files(root, None))
     if k >= len(paths):
         return paths

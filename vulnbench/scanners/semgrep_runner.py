@@ -138,8 +138,14 @@ def run_semgrep(
     Raises ``FileNotFoundError`` with an install hint if Semgrep is absent so the
     failure is actionable rather than a bare ``No such file``.
     """
-    semgrep_bin = _require_semgrep()
     targets = [target_path] if isinstance(target_path, str) else list(target_path)
+    if not targets:
+        # Semgrep with no target scans the *current working directory*, so an empty
+        # file list (e.g. sampling a tree with no source in it) would silently scan
+        # whatever the user happened to be standing in, and score it as the target.
+        # Checked before resolving the binary: it's an argument bug, not a setup one.
+        raise ValueError("run_semgrep: no scan targets (the source tree has no source files)")
+    semgrep_bin = _require_semgrep()
     cmd = [semgrep_bin, "--config", config, "--json", "--quiet", *targets]
     if extra_args:
         cmd[1:1] = extra_args
