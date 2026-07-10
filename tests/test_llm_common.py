@@ -50,3 +50,27 @@ def test_invalid_verdict_becomes_none():
 def test_missing_cwe_defaults_to_zero():
     text = '{"findings": [{"file": "a", "verdict": "confirmed"}]}'
     assert parse_findings(text, "B3")[0].vuln_class == 0
+
+
+def test_cwe_label_string_is_coerced_to_id():
+    out = parse_findings('{"findings": [{"cwe": "CWE-89", "file": "a.java"}]}', "B3")
+    assert [f.vuln_class for f in out] == [89]
+    out = parse_findings('{"findings": [{"cwe": "89", "file": "a.java"}]}', "B3")
+    assert [f.vuln_class for f in out] == [89]
+
+
+def test_unrecognizable_cwe_degrades_to_zero():
+    out = parse_findings('{"findings": [{"cwe": "sql injection", "file": "a.java"}]}', "B3")
+    assert [f.vuln_class for f in out] == [0]
+
+
+def test_findings_not_a_list_returns_empty():
+    assert parse_findings('{"findings": {"cwe": 89}}', "B3") == []
+    assert parse_findings('{"findings": "none"}', "B3") == []
+
+
+def test_non_dict_items_are_skipped():
+    out = parse_findings(
+        '{"findings": ["prose", 42, {"cwe": 79, "file": "b.java"}]}', "B3"
+    )
+    assert [f.vuln_class for f in out] == [79]
