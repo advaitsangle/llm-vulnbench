@@ -78,10 +78,12 @@ class _Tracker:
         self._progress = progress
         self._task = task_id
 
-    def start(self, condition_id: str, target: str) -> None:
+    def start(self, condition_id: str, target: str, *, resumed: bool = False) -> None:
+        verb = "resuming" if resumed else "running"
+        color = PALETTE["amber"] if resumed else PALETTE["blue"]
         self._progress.update(
             self._task,
-            description=f"[{PALETTE['blue']}]running [bold]{condition_id}[/bold] on {target}",
+            description=f"[{color}]{verb} [bold]{condition_id}[/bold] on {target}",
         )
 
     def advance(self) -> None:
@@ -91,8 +93,9 @@ class _Tracker:
 class _PlainTracker:
     """No-op-ish tracker for plain mode: prints one line as each condition starts."""
 
-    def start(self, condition_id: str, target: str) -> None:
-        print(f"… running {condition_id} on {target}")
+    def start(self, condition_id: str, target: str, *, resumed: bool = False) -> None:
+        verb = "resumed" if resumed else "running"
+        print(f"… {verb} {condition_id} on {target}")
 
     def advance(self) -> None:
         pass

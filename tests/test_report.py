@@ -70,6 +70,17 @@ def test_matrix_plain_lists_every_config_and_marks_the_best(capsys):
     assert "scorecard -> card.json" in out
 
 
+def test_plain_tracker_distinguishes_a_resumed_cell_from_a_running_one(capsys):
+    """A checkpoint hit must not announce itself as running."""
+    with Reporter(pretty=False).track(2) as tracker:
+        tracker.start("B1", "bench")
+        tracker.start("C1", "bench", resumed=True)
+    out = capsys.readouterr().out
+    assert "… running B1 on bench" in out
+    assert "… resumed C1 on bench" in out
+    assert "running C1" not in out
+
+
 def test_matrix_plain_handles_no_scored_cells(capsys):
     Reporter(pretty=False).matrix([_rec(error="boom")], {})
     out = capsys.readouterr().out

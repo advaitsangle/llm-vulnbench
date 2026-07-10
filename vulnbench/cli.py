@@ -100,8 +100,10 @@ def _cmd_run(args: argparse.Namespace) -> int:
     reused = 0             # cells served from the checkpoint this run
     with reporter.track(len(args.condition)) as tracker:
         for cid in args.condition:
-            tracker.start(cid, target.name)
+            # Consult the checkpoint before announcing the cell, so a cached one
+            # doesn't claim to be running.
             cached = ckpt.get(cid)
+            tracker.start(cid, target.name, resumed=cached is not None)
             if cached is not None:
                 record, findings = cached
                 reused += 1
