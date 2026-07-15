@@ -1,4 +1,4 @@
-# vulnbench
+# llm-vulnbench
 
 A benchmark harness for **LLM-augmented web vulnerability detection**. It runs a
 ladder of detection *conditions* — SAST, DAST, an unaided LLM, and several
