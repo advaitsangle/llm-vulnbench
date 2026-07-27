@@ -1,8 +1,7 @@
 # Architecture — how vulnbench fits together
 
 A developer onboarding guide. Read this once and you'll know where everything lives and
-how to add to it. For *using* the tool (flags, models, config), see [README.md](README.md);
-for the research rationale, see [`notes/`](notes/) (internal notes).
+how to add to it. For *using* the tool (flags, models, config), see [README.md](README.md).
 
 ## The one-paragraph mental model
 
