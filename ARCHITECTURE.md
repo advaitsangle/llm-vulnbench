@@ -193,6 +193,30 @@ the knob prompts and the dependency preflight) pick it up automatically.
 > command depends on the machine's current state (Docker running, a compose file present),
 > supply `install_cmd_factory` instead — it's re-evaluated when the user is actually asked.
 
+#### When is a condition done?
+
+"It runs" isn't the bar — the point of this repo is that every cell is *comparable*, and a
+condition that runs but scores oddly is worse than one that doesn't exist. A condition is
+ready for review when all six hold:
+
+1. **It's registered and self-declaring.** One `REGISTRY` line, and `knobs` / `needs_model`
+   / `needs_source` / `needs_url` / `tools` are filled in — so it appears in `vulnbench run
+   --condition`, in the wizard menus, and in the dependency preflight without anyone
+   editing the CLI.
+2. **It returns `list[Finding]`** with the location fields its target kind is scored on
+   populated — `file` + `line` for source targets, `url` + `param` for web targets. A
+   finding the scorer can't match counts as a miss, so this is where silent recall loss
+   comes from.
+3. **It has an offline test.** `MockBackend` / `--model mock`, no network, no Docker, no
+   API key — CI runs on a bare GitHub runner and must stay green there.
+4. **You've run it for real, at least once, on a real target** — not just the mock — and
+   it produced a scorecard row with plausible metrics. Attach that row to your PR. Mock
+   tests prove the wiring; only a real run proves the condition detects anything.
+5. **`pytest -q` and `ruff check vulnbench tests` are clean**, since those are the required
+   CI checks.
+6. **New knobs are in the README's Configuration table**, so a user can discover them
+   without reading your source.
+
 ### Add a new model backend (e.g. OpenAI, vLLM)
 
 1. Create `models/your_backend.py` with a class subclassing `ModelBackend`; implement
