@@ -1,4 +1,4 @@
-# Architecture — how vulnbench fits together
+# Architecture: how vulnbench fits together
 
 A developer onboarding guide. Read this once and you'll know where everything lives and
 how to add to it. For *using* the tool (flags, models, config), see [README.md](README.md).
@@ -6,32 +6,32 @@ how to add to it. For *using* the tool (flags, models, config), see [README.md](
 ## The one-paragraph mental model
 
 vulnbench runs a ladder of vulnerability-detection **conditions** (SAST, DAST, an unaided
-LLM, and several LLM+scanner hybrids) against the *same* target app, makes every condition
-emit results in *one* shape, and scores them all *the same way* against known ground truth —
-recording cost (tokens) and latency along the way. The whole design exists to make that
-comparison apples-to-apples.
+LLM, and several LLM+scanner hybrids) against the same target app. Every condition returns
+its results in one shape, and every result is scored the same way against known ground
+truth, with tokens and latency recorded per run. That uniformity is what makes the
+conditions comparable.
 
-Everything hangs off **three seams**. Learn these and the rest is plumbing:
+Everything hangs off **three seams**. Learn these three and the rest follows:
 
 | Seam | File | What it guarantees |
 |---|---|---|
-| **`Finding`** | [`schema.py`](vulnbench/schema.py) | Every condition, whatever tool it used, returns a `list[Finding]`. One shape ⇒ a SAST `file:line` and a DAST `url/param` land in the same scorecard. |
-| **`ModelBackend`** | [`models/base.py`](vulnbench/models/base.py) | One `complete(messages, tools?)` call. Swapping a local model for a frontier API is a `--model` flag, not a code fork. |
-| **`Condition`** | [`conditions/base.py`](vulnbench/conditions/base.py) | Every matrix cell is `run(target, ctx) -> findings + usage`. Uniform ⇒ cost and latency are measured per cell for free. |
+| **`Finding`** | [`schema.py`](vulnbench/schema.py) | Every condition returns a `list[Finding]`, whatever tool produced it. Because the shape is the same, a SAST `file:line` and a DAST `url/param` land in the same scorecard. |
+| **`ModelBackend`** | [`models/base.py`](vulnbench/models/base.py) | One `complete(messages, tools?)` call. Swapping a local model for a frontier API takes a `--model` flag. |
+| **`Condition`** | [`conditions/base.py`](vulnbench/conditions/base.py) | Every matrix cell is `run(target, ctx) -> findings + usage`. Because the call is uniform, the harness measures cost and latency for every cell. |
 
-A condition also **declares itself**: its tuning options (`knobs`), what inputs it needs
-(`needs_model` / `needs_source` / `needs_url`), and which external tools it shells out to
-(`tools`). That's what lets the interactive session in [`wizard.py`](vulnbench/wizard.py)
-render menus, preflight dependencies, and prompt for a missing source tree *without knowing
-any condition by name*. Adding a condition changes the UI for free; forgetting to declare
-means your knob silently never appears.
+A condition also **declares itself**: its tuning options (`knobs`), the inputs it needs
+(`needs_model` / `needs_source` / `needs_url`), and the external tools it shells out to
+(`tools`). Those declarations are how the interactive session in
+[`wizard.py`](vulnbench/wizard.py) renders menus, preflights dependencies, and prompts for
+a missing source tree without knowing any condition by name. Add a condition and the UI
+updates itself. Skip a declaration and your knob never appears in the menu.
 
 ## The pipeline at a glance
 
 There are **two front-ends** onto the same harness. `vulnbench run …` takes flags;
 a bare `vulnbench` starts the interactive session, which builds a *sweep* (many cells
-across targets × models × conditions) and renders one comparative matrix. Both end up
-calling `harness.run_one` per cell, so everything below is shared.
+across targets × models × conditions) and renders one comparative matrix. Both call
+`harness.run_one` per cell, so everything below is shared.
 
 ```mermaid
 flowchart TD
@@ -82,32 +82,34 @@ flowchart TD
    (if any), and parses `--config` JSON into a knobs dict.
 2. **`harness.run_one`** looks the condition up in the `REGISTRY`, calls `validate()`
    (so a missing model or source fails *before* expensive work), then `run()`.
-3. The **condition** does its thing — shell out to a scanner, call the model, or both —
-   and normalizes everything to `list[Finding]`.
+3. The **condition** does its thing, shelling out to a scanner, calling the model, or
+   both, and normalizes everything to `list[Finding]`.
 4. **`harness._score`** picks a scorer by `target.kind` and produces `Metrics`.
 5. The result is packed into a **`RunRecord`** (metrics + tokens + latency + provenance)
    and rendered by `report.py`; raw data goes to JSON files. `run_one` returns
-   `(RunRecord, list[Finding])` — the record only *counts* findings (`n_findings`), so the
-   findings themselves travel beside it and are written separately (`--findings-out`, or
+   `(RunRecord, list[Finding])`. The record stores only a count (`n_findings`), so the
+   findings travel alongside it and are written to their own file (`--findings-out`, or
    `<scorecard>.findings.json` in the interactive session).
-6. Each **error-free** cell is written to a **checkpoint** immediately — record *and*
-   findings — so an interrupted sweep resumes instead of redoing work, and still writes a
-   complete findings.json. A cell that errored isn't stored, so it retries on resume.
+6. Each **error-free** cell is written to a **checkpoint** as soon as it finishes, record
+   and findings together, so an interrupted sweep resumes where it stopped and still
+   writes a complete findings.json. A cell that errored stays out of the checkpoint, so it
+   runs again on resume.
 
-Errors in a single cell are caught and stored in `RunRecord.error` so the rest of the
-matrix keeps running; pass `--debug` to re-raise them instead (use this while developing).
-The same policy holds one level up: user mistakes on the command line (malformed
-`--config` JSON, an unrecognized `--model` spec) exit with a one-line usage error before
-any cell runs, and a backend the wizard can't build mid-sweep (missing API key or
-optional package) fails only its own cells via `RunRecord.failed`.
+The harness catches an error in a single cell and stores it in `RunRecord.error` so the
+rest of the matrix keeps running; pass `--debug` to re-raise it while you're developing.
+The same policy holds one level up. A mistake on the command line (malformed `--config`
+JSON, an unrecognized `--model` spec) exits with a one-line usage error before any cell
+runs, and a backend the wizard can't build mid-sweep (missing API key or optional package)
+fails only its own cells via `RunRecord.failed`.
 
 ### Two-phase conditions (`TriageCondition`)
 
 C1 and C2 inherit [`TriageCondition`](vulnbench/conditions/base.py), which splits a run into
 **scan** (run the scanner) and **triage** (model judges the scanner's output). The phases
-can run *separately* (`--scan-out` then `--scan-in`) so you never need the heavy scan stack
-(Docker + ZAP) and a big local model resident at the same time — the key trick on a
-RAM-bound machine. C3 uses the same idea inverted: **author** rules, then **scan** with them.
+can run *separately* (`--scan-out` then `--scan-in`), so you never need the heavy scan stack
+(Docker + ZAP) and a big local model resident at the same time. That is the trick that
+makes the whole thing work on a RAM-bound machine. C3 applies the same split in reverse:
+**author** rules, then **scan** with them.
 
 ## Where things live
 
@@ -161,8 +163,8 @@ vulnbench/
 1. Create `conditions/x9_thing.py` with a class subclassing `Condition` (or
    `TriageCondition` if it's scanner-then-model) and implement
    `run(self, target, ctx) -> ConditionResult`.
-2. **Declare what it is and what it needs** — this is what the CLI and the interactive
-   session read, so nothing else needs editing:
+2. **Declare what it is and what it needs.** The CLI and the interactive session read
+   these attributes, so nothing else needs editing:
 
    ```python
    class X9Thing(Condition):
@@ -176,55 +178,55 @@ vulnbench/
        )
    ```
 
-   Read knobs with `self.cfg(ctx, "max_hops")`, **never** `ctx.config.get("max_hops", 3)` —
-   see the gotcha under "Conventions" below for why the second form breaks silently.
+   Read knobs with `self.cfg(ctx, "max_hops")`, **never** `ctx.config.get("max_hops", 3)`.
+   See the gotcha under "Conventions" below for why the second form breaks silently.
 3. Return findings as `list[Finding]`. For LLM conditions, reuse
    `llm_common.SYSTEM_PROMPT` / `OUTPUT_CONTRACT` / `parse_findings()` so your output
    is scored like the others.
 4. Register it in [`conditions/__init__.py`](vulnbench/conditions/__init__.py) `REGISTRY`.
 5. Add a test in `tests/` (use `--model mock` / `MockBackend` so it runs offline).
 
-That's it — `cli.py`, `harness.py`, scoring, the report, and every wizard menu (including
-the knob prompts and the dependency preflight) pick it up automatically.
+`cli.py`, `harness.py`, scoring, the report, and every wizard menu (including the knob
+prompts and the dependency preflight) then pick the condition up automatically.
 
 > Needs a tool nobody uses yet? Add a `Tool` to [`tools.py`](vulnbench/tools.py) with a
 > `check`, an optional `install_cmd`, and a `hint`, then name its key in `tools`. Give a
-> daemon (not a package) a `startup_wait` so the probe polls while it boots. If the
-> command depends on the machine's current state (Docker running, a compose file present),
-> supply `install_cmd_factory` instead — it's re-evaluated when the user is actually asked.
+> daemon a `startup_wait` so the probe polls while it boots; a package doesn't need one.
+> If the command depends on the machine's current state (Docker running, a compose file
+> present), supply `install_cmd_factory` instead. It is re-evaluated at the moment the
+> user is actually asked.
 
 #### When is a condition done?
 
-"It runs" isn't the bar — the point of this repo is that every cell is *comparable*, and a
-condition that runs but scores oddly is worse than one that doesn't exist. A condition is
-ready for review when all six hold:
+Every cell in the matrix has to be comparable with every other one, so a condition that
+runs and scores wrongly does real damage to the results. A condition is ready for review
+when all six of these hold:
 
-1. **It's registered and self-declaring.** One `REGISTRY` line, and `knobs` / `needs_model`
-   / `needs_source` / `needs_url` / `tools` are filled in — so it appears in `vulnbench run
-   --condition`, in the wizard menus, and in the dependency preflight without anyone
-   editing the CLI.
-2. **It returns `list[Finding]`** with the location fields its target kind is scored on
-   populated — `file` + `line` for source targets, `url` + `param` for web targets. A
-   finding the scorer can't match counts as a miss, so this is where silent recall loss
-   comes from.
+1. **It's registered and self-declaring.** One `REGISTRY` line, with `knobs`,
+   `needs_model`, `needs_source`, `needs_url`, and `tools` filled in, so it appears in
+   `vulnbench run --condition`, in the wizard menus, and in the dependency preflight
+   without anyone editing the CLI.
+2. **It returns `list[Finding]`** with the location fields populated for its target kind:
+   `file` plus `line` for source targets, `url` plus `param` for web targets. The scorer
+   counts a finding it can't match as a miss, which is where recall quietly disappears.
 3. **It has an offline test.** `MockBackend` / `--model mock`, no network, no Docker, no
-   API key — CI runs on a bare GitHub runner and must stay green there.
-4. **You've run it for real, at least once, on a real target** — not just the mock — and
-   it produced a scorecard row with plausible metrics. Attach that row to your PR. Mock
-   tests prove the wiring; only a real run proves the condition detects anything.
+   API key. CI runs on a bare GitHub runner and has to stay green there.
+4. **You've run it once on a real target**, beyond the mock, and it produced a scorecard
+   row with plausible metrics. Attach that row to your PR. A mock test shows the condition
+   is wired up correctly. A real run is the evidence that it detects anything.
 5. **`pytest -q` and `ruff check vulnbench tests` are clean**, since those are the required
    CI checks.
-6. **New knobs are in the README's Configuration table**, so a user can discover them
-   without reading your source.
+6. **New knobs are in the README's Configuration table**, so a user can find them without
+   reading your source.
 
 ### Add a new model backend (e.g. OpenAI, vLLM)
 
 1. Create `models/your_backend.py` with a class subclassing `ModelBackend`; implement
    `_complete(messages, tools?) -> Completion`. (The base `complete()` stamps latency
-   for you — don't override it.) Set `self.name` to a scorecard-friendly id.
+   for you, so don't override it.) Set `self.name` to a scorecard-friendly id.
 2. Wire a spec prefix into [`models/registry.py`](vulnbench/models/registry.py)
    `build_backend()` (e.g. `api:openai:` → your class), and teach `is_valid_spec()`
-   the same grammar — that's what lets the wizard reject a typo at entry time.
+   the same grammar. That's what lets the wizard reject a typo at entry time.
 3. Report `Usage(input_tokens, output_tokens)` so cost metrics keep working.
 
 No condition or scoring code changes.
@@ -242,42 +244,42 @@ No condition or scoring code changes.
 ## Conventions & gotchas a new dev should know
 
 - **Stdlib-only core.** The harness imports and runs with zero third-party packages.
-  Backends/scanners shell out or use `urllib`; `rich` is an *optional* extra that the
-  reporter degrades gracefully without. Don't add a hard third-party import to the core
-  path — put it behind an optional extra and a lazy import (see `anthropic_backend.py`).
-- **Read knobs with `self.cfg(ctx, name)` — never `ctx.config.get(name, default)`.** This
-  is the easiest thing on this list to get wrong and the only one that fails *silently*.
-  A `Knob`'s `default` is the single source of truth: `cfg()` falls back to it, so the
-  value the wizard menu displays and the value your code runs with can't drift. Write your
-  own default into a `.get()` call and the two quietly disagree — the menu offers `3`, the
-  run uses `5`, and the scorecard is wrong in a way no test result will point at.
-  `test_every_cfg_read_names_a_declared_knob` catches reads of an *undeclared* knob, but it
-  can't catch a duplicated default, so this one is on you.
-- **Knobs are declared, not improvised.** Every option a condition accepts is a `Knob` in
-  its `knobs` tuple. `Condition.all_knobs()` merges the MRO, so `TriageCondition` hands
-  `scan_out`/`scan_in` to C1 and C2 without either restating them. Mark plumbing knobs
-  (file handoff between phases) `advanced=True` to keep them out of the wizard's tuning
-  menu.
-- **`--config` keys are checked against declared knobs.** The CLI rejects a key that none
-  of the chosen conditions declare (so a typo like `max_file` vs `max_files` errors up
-  front instead of silently running with the default); the wizard only offers declared
-  knobs in the first place. Full list: the README's Configuration table.
-- **Shared helpers have real homes.** Source-tree walking/reading (`iter_source_files`,
-  `read_capped`, `SCAN_KNOBS`) lives in `conditions/source_files.py`; JSON parsing in
-  `llm_common.py`. The ZAP driver (`_run_zap_from_config`, `ZAP_KNOBS`) still lives with
-  its first user in `b2_zap.py` — C2 imports it — since it's only shared by that pair.
-- **`validate()` fails fast, and mostly writes itself.** Set `needs_model` /
-  `needs_source` / `needs_url` and the base class raises an actionable error before any
-  expensive work — no condition below needs its own `validate()`. Override it only when a
-  knob *relaxes* a requirement, and push the rule as far up as it applies: `scan_in` means
-  no scanner input is needed, so `TriageCondition` handles that once for both C1 and C2;
-  only C3 (whose `rules_in` needs no model) overrides it directly.
-- **Preflight beats a traceback.** Anything a condition shells out to belongs in `tools`,
-  so a missing scanner is a prompt at second zero rather than a stack trace thirty minutes
-  into a sweep.
-- **Reproducibility is the point.** Sorted file iteration, frozen config in provenance,
-  and recorded tool versions all exist so a scored run is repeatable. Preserve that when
-  you add capped/sampled behavior.
+  Backends and scanners shell out or use `urllib`; `rich` is an optional extra, and the
+  reporter falls back to plain text without it. Keep third-party imports off the core
+  path: put them behind an optional extra and a lazy import (see `anthropic_backend.py`).
+- **Read knobs with `self.cfg(ctx, name)`, never `ctx.config.get(name, default)`.** A
+  `Knob`'s `default` is the single source of truth. `cfg()` falls back to it, so the value
+  the wizard shows and the value your code runs with stay in step. Write a second default
+  into a `.get()` call and the two drift apart: the menu offers `3`, the run uses `5`, and
+  the scorecard is wrong with nothing to flag it.
+  `test_every_cfg_read_names_a_declared_knob` catches reads of an undeclared knob, and a
+  duplicated default is invisible to it.
+- **Declare every knob.** Every option a condition accepts is a `Knob` in its `knobs`
+  tuple. `Condition.all_knobs()` merges the MRO, so `TriageCondition` hands
+  `scan_out`/`scan_in` to C1 and C2 without either restating them. Mark handoff knobs (the
+  files that pass data between phases) `advanced=True` to keep them out of the wizard's
+  tuning menu.
+- **The CLI checks `--config` keys against declared knobs.** It rejects a key that none of
+  the chosen conditions declare, so a typo like `max_file` for `max_files` fails before the
+  run starts. The wizard only offers declared knobs to begin with. Full list: the README's
+  Configuration table.
+- **Shared helpers live in one place.** Source-tree walking and reading
+  (`iter_source_files`, `read_capped`, `SCAN_KNOBS`) live in `conditions/source_files.py`,
+  and JSON parsing lives in `llm_common.py`. The ZAP driver (`_run_zap_from_config`,
+  `ZAP_KNOBS`) stays in `b2_zap.py` where it was first used, and C2 imports it from there,
+  because that pair is the only thing sharing it.
+- **`validate()` mostly writes itself.** Set `needs_model`, `needs_source`, or `needs_url`
+  and the base class raises a clear error before any expensive work, so no condition needs
+  its own `validate()`. Override it only when a knob *relaxes* a requirement, and put the
+  rule as high up as it applies: `scan_in` removes the need for scanner input, so
+  `TriageCondition` handles it once for both C1 and C2. C3 overrides directly because its
+  `rules_in` removes the need for a model.
+- **Declare external tools so preflight can check them.** Anything a condition shells out
+  to belongs in `tools`. Preflight then catches a missing scanner in the first second of a
+  run, when it costs a prompt to fix, instead of thirty minutes into a sweep.
+- **Keep runs reproducible.** Sorted file iteration, frozen config in provenance, and
+  recorded tool versions all exist so a scored run can be repeated exactly. Preserve that
+  when you add capped or sampled behavior.
 
 ## Dev loop
 
@@ -289,15 +291,15 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[dev,pretty]'
 .venv/bin/ruff check vulnbench tests          # lint: line-length 100, import order
 ```
 
-Use `--model mock` for an end-to-end run with no server or keys. Both checks above are
-exactly what CI runs on every PR (see the workflow below), so run them before you push.
+Use `--model mock` for an end-to-end run with no server or keys. CI runs both checks above
+on every PR, so run them before you push.
 
 ## Working on this repo (contribution workflow)
 
-`main` is **branch-protected** — nobody pushes to it directly. Every change lands through a
-pull request that passes CI and review. The whole flow, end to end:
+`main` is **branch-protected**, so nobody pushes to it directly. Every change lands through
+a pull request that passes CI and review. The whole flow, end to end:
 
-**1 — One branch, one PR, one condition.** Branch off an up-to-date `main` and name the
+**1. One branch, one PR, one condition.** Branch off an up-to-date `main` and name the
 branch for the work (`a4-rag`, `a8-cot`, …):
 
 ```bash
@@ -306,39 +308,40 @@ git checkout -b a4-rag
 ```
 
 Keep a PR to a single condition: its new `conditions/xN_thing.py`, its test, and the one
-`REGISTRY` line (see "Add a new condition" above). Small, single-purpose PRs review fast and
-don't collide — the only file two contributors touch in common is `conditions/__init__.py`
-(the registry), and a one-line conflict there is trivial to resolve.
+`REGISTRY` line (see "Add a new condition" above). Small, single-purpose PRs review fast
+and don't collide. The only file two contributors touch in common is
+`conditions/__init__.py` (the registry), and a one-line conflict there is trivial to
+resolve.
 
-**2 — Before you push, run what CI runs.** A PR can't merge until CI is green:
+**2. Before you push, run what CI runs.** A PR can't merge until CI is green:
 `ruff check vulnbench tests` and `pytest -q`, across Python 3.11 / 3.12 / 3.13
 (`.github/workflows/ci.yml`). Run both locally first so the PR goes green on the first try.
 
-**3 — Open the PR against `main`.** To merge it needs:
+**3. Open the PR against `main`.** To merge it needs:
 
-- **CI green** — the three `lint-and-test` jobs.
-- **One approving review**, from somebody other than the author — you can't approve your
-  own PR. Note that pushing new commits *dismisses* an approval you already have, so get
-  the PR final before you ask for review.
-- **Code-owner review where it applies** — if your PR touches a frozen core path, the code
-  owner (see [`.github/CODEOWNERS`](.github/CODEOWNERS)) must approve. Adding a condition
-  normally touches only your new file + the one registry line; the registry line lives in a
-  co-owned file, so expect a maintainer review on that.
+- **CI green**, meaning the three `lint-and-test` jobs.
+- **One approving review**, from somebody other than the author, since you can't approve
+  your own PR. Pushing new commits dismisses an approval you already have, so get the PR
+  final before you ask for review.
+- **Code-owner review where it applies.** If your PR touches a frozen core path, the code
+  owner (see [`.github/CODEOWNERS`](.github/CODEOWNERS)) has to approve. Adding a condition
+  normally touches only your new file plus the one registry line, and that registry line
+  lives in a co-owned file, so expect a maintainer review on it.
 
-Merges are **squashed** — your branch history doesn't need to be tidy; one clean commit lands
-on `main` per PR. Write a clear PR title and description.
+Merges are **squashed**, so your branch history doesn't need to be tidy; one clean commit
+lands on `main` per PR. Write a clear PR title and description.
 
-**4 — Don't touch the frozen core.** The harness, scoring, model backends, `schema.py`, and
-the `Condition` contract (`base.py` + the registry) are stable API your condition builds
-*on top of* — they should not change as part of adding a condition. If you think a core
-change is genuinely needed, raise it (an issue / a note to the maintainer) *before* opening
-a PR, not as a drive-by edit.
+**4. Leave the frozen core alone.** The harness, scoring, model backends, `schema.py`, and
+the `Condition` contract (`base.py` plus the registry) are stable API that your condition
+builds *on top of*, and they should stay fixed while you add a condition. If you think a
+core change is genuinely needed, raise it in an issue or a message to the maintainer
+*before* you open a PR.
 
-**5 — New dependencies go behind an optional extra + a lazy import.** The core is
+**5. New dependencies go behind an optional extra and a lazy import.** The core is
 stdlib-only (see the conventions above). If your condition needs a library (embeddings, a
-parser, …), declare it as an optional extra in `pyproject.toml`
-(`[project.optional-dependencies] a4 = ["…"]`) and import it *inside* `run()`, raising an
-actionable "pip install vulnbench[a4]" if it's missing — never add a hard third-party import
-to the core path, or you break `import vulnbench` for everyone else.
+parser, and so on), declare it as an optional extra in `pyproject.toml`
+(`[project.optional-dependencies] a4 = ["…"]`) and import it *inside* `run()`, raising a
+message that names the install command when it's missing. A third-party import on the core
+path breaks `import vulnbench` for everyone else.
 
 See [README.md](README.md) for the full usage, configuration, and the `targets` app manager.
