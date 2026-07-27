@@ -176,10 +176,8 @@ vulnbench/
        )
    ```
 
-   Read knobs with `self.cfg(ctx, "max_hops")`, **never** `ctx.config.get("max_hops", 3)`.
-   The `Knob`'s `default` is the single source of truth: `cfg()` falls back to it, so the
-   value a menu displays and the value your code uses cannot drift apart. A test
-   (`test_every_cfg_read_names_a_declared_knob`) fails if you read an undeclared knob.
+   Read knobs with `self.cfg(ctx, "max_hops")`, **never** `ctx.config.get("max_hops", 3)` —
+   see the gotcha under "Conventions" below for why the second form breaks silently.
 3. Return findings as `list[Finding]`. For LLM conditions, reuse
    `llm_common.SYSTEM_PROMPT` / `OUTPUT_CONTRACT` / `parse_findings()` so your output
    is scored like the others.
@@ -223,11 +221,19 @@ No condition or scoring code changes.
   Backends/scanners shell out or use `urllib`; `rich` is an *optional* extra that the
   reporter degrades gracefully without. Don't add a hard third-party import to the core
   path — put it behind an optional extra and a lazy import (see `anthropic_backend.py`).
+- **Read knobs with `self.cfg(ctx, name)` — never `ctx.config.get(name, default)`.** This
+  is the easiest thing on this list to get wrong and the only one that fails *silently*.
+  A `Knob`'s `default` is the single source of truth: `cfg()` falls back to it, so the
+  value the wizard menu displays and the value your code runs with can't drift. Write your
+  own default into a `.get()` call and the two quietly disagree — the menu offers `3`, the
+  run uses `5`, and the scorecard is wrong in a way no test result will point at.
+  `test_every_cfg_read_names_a_declared_knob` catches reads of an *undeclared* knob, but it
+  can't catch a duplicated default, so this one is on you.
 - **Knobs are declared, not improvised.** Every option a condition accepts is a `Knob` in
-  its `knobs` tuple, read back via `self.cfg(ctx, name)`. `Condition.all_knobs()` merges
-  the MRO, so `TriageCondition` hands `scan_out`/`scan_in` to C1 and C2 without either
-  restating them. Mark plumbing knobs (file handoff between phases) `advanced=True` to keep
-  them out of the wizard's tuning menu.
+  its `knobs` tuple. `Condition.all_knobs()` merges the MRO, so `TriageCondition` hands
+  `scan_out`/`scan_in` to C1 and C2 without either restating them. Mark plumbing knobs
+  (file handoff between phases) `advanced=True` to keep them out of the wizard's tuning
+  menu.
 - **`--config` keys are checked against declared knobs.** The CLI rejects a key that none
   of the chosen conditions declare (so a typo like `max_file` vs `max_files` errors up
   front instead of silently running with the default); the wizard only offers declared
