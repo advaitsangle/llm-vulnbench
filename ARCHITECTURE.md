@@ -317,8 +317,9 @@ don't collide — the only file two contributors touch in common is `conditions/
 **3 — Open the PR against `main`.** To merge it needs:
 
 - **CI green** — the three `lint-and-test` jobs.
-- **Approving review(s)** — the repo requires approvals from other collaborators (a PR author
-  can't approve their own PR).
+- **One approving review**, from somebody other than the author — you can't approve your
+  own PR. Note that pushing new commits *dismisses* an approval you already have, so get
+  the PR final before you ask for review.
 - **Code-owner review where it applies** — if your PR touches a frozen core path, the code
   owner (see [`.github/CODEOWNERS`](.github/CODEOWNERS)) must approve. Adding a condition
   normally touches only your new file + the one registry line; the registry line lives in a
