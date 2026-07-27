@@ -37,19 +37,13 @@ calling `harness.run_one` per cell, so everything below is shared.
 ```mermaid
 flowchart TD
     ARGS["CLI args"] --> CLI["cli.py"]
-    CLI -- "no subcommand" --> WIZ["wizard.py
-    menus ← REGISTRY · knobs · targets.toml
-    preflight ← tools.py
-    sweep = targets × models × conditions"]
+    CLI -- "no subcommand" --> WIZ["<b>wizard.py</b><br/>menus ← REGISTRY · knobs<br/>· targets.toml<br/>preflight ← tools.py<br/>sweep = targets × models<br/>× conditions"]
     CLI -- "run …" --> BUILD
     WIZ -- "one cell at a time" --> BUILD
-    BUILD{"build the inputs"}
-    BUILD --> TARGET["Target
-    (corpus/target.py — what we scan)"]
-    BUILD --> MODEL["ModelBackend
-    (models/ — the swappable LLM) ◀ seam"]
-    BUILD --> CONFIG["config dict
-    (per-condition knobs)"]
+    BUILD{"build<br/>the inputs"}
+    BUILD --> TARGET["<b>Target</b><br/>corpus/target.py<br/>— what we scan"]
+    BUILD --> MODEL["<b>ModelBackend</b><br/>models/<br/>— the swappable LLM<br/>◀ seam"]
+    BUILD --> CONFIG["<b>config dict</b><br/>per-condition knobs"]
 
     TARGET --> HARNESS
     MODEL --> HARNESS
@@ -57,41 +51,30 @@ flowchart TD
 
     subgraph HARNESS["harness.run_one"]
         direction TB
-        STEP1["1. get_condition(id)
-        conditions/__init__.py REGISTRY"] --> STEP2
-        STEP2["2. condition.validate(...)
-        fail fast (missing model? missing source?)"] --> STEP3
-        STEP3["3. condition.run(target, ctx)"] --> RUN
-        RUN["Condition.run
-        (one matrix cell) ◀ seam"] --> CALLS
-        CALLS{"calls as needed"} --> SCANNERS
+        STEP1["<b>1. get_condition(id)</b><br/>conditions/__init__.py<br/>REGISTRY"] --> STEP2
+        STEP2["<b>2. condition.validate(…)</b><br/>fail fast:<br/>missing model?<br/>missing source?"] --> STEP3
+        STEP3["<b>3. condition.run(target, ctx)</b>"] --> RUN
+        RUN["<b>Condition.run</b><br/>one matrix cell<br/>◀ seam"] --> CALLS
+        CALLS{"calls<br/>as needed"} --> SCANNERS
         CALLS --> BACKEND
-        SCANNERS["scanners/
-        Semgrep / ZAP"] --> FINDINGS
-        BACKEND["models/ModelBackend.complete()
-        Ollama / Anthropic / mock"] --> FINDINGS
-        FINDINGS["list[Finding]
-        (schema.py — the universal result) ◀ seam"] --> SCORE
-        SCORE["4. score against ground truth"]
+        SCANNERS["<b>scanners/</b><br/>Semgrep / ZAP"] --> FINDINGS
+        BACKEND["<b>models/</b><br/>ModelBackend.complete()<br/>Ollama · Anthropic · mock"] --> FINDINGS
+        FINDINGS["<b>list[Finding]</b><br/>schema.py<br/>— the universal result<br/>◀ seam"] --> SCORE
+        SCORE["<b>4. score against<br/>ground truth</b>"]
     end
 
-    SCORE --> SCORING["scoring/
-    picks by target.kind"]
-    SCORING --> OWASP["owasp_benchmark (CSV)"]
-    SCORING --> WEBAPPS["webapps_benchmark (list)"]
-    OWASP --> METRICS["Metrics
-    P / R / F1 / FPR / Youden-J"]
+    SCORE --> SCORING["<b>scoring/</b><br/>picks by target.kind"]
+    SCORING --> OWASP["owasp_benchmark<br/>(CSV)"]
+    SCORING --> WEBAPPS["webapps_benchmark<br/>(list)"]
+    OWASP --> METRICS["<b>Metrics</b><br/>P · R · F1<br/>FPR · Youden-J"]
     WEBAPPS --> METRICS
-    METRICS --> RECORD["RunRecord
-    metrics + tokens + latency + provenance + trace"]
+    METRICS --> RECORD["<b>RunRecord</b><br/>metrics + tokens<br/>+ latency<br/>+ provenance + trace<br/><i>counts findings,<br/>doesn't carry them</i>"]
 
-    RECORD --> REPORT["report.py
-    summary() one target · matrix() a sweep
-    + live progress (terminal)"]
-    RECORD --> SCORECARD["scorecard.json (-o)"]
-    RECORD --> FINDINGSOUT["findings.json (--findings-out)"]
-    RECORD --> CHECKPOINT["runs/checkpoint-&lt;hash&gt;.json
-    (auto-saved per cell, for resume)"]
+    RECORD --> REPORT["<b>report.py</b><br/>summary() one target<br/>matrix() a sweep<br/>+ live progress"]
+    RECORD --> SCORECARD["<b>scorecard.json</b><br/>(-o)"]
+    FINDINGS --> FINDINGSOUT["<b>findings.json</b><br/>(--findings-out)<br/>flat array,<br/>every cell merged"]
+    RECORD --> CHECKPOINT["<b>runs/checkpoint-&lt;hash&gt;.json</b><br/>record + findings<br/>per clean cell,<br/>for resume"]
+    FINDINGS --> CHECKPOINT
 ```
 
 ### What happens in one run (`run_one`)
