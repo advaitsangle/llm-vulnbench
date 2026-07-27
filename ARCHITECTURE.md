@@ -87,9 +87,13 @@ flowchart TD
    and normalizes everything to `list[Finding]`.
 4. **`harness._score`** picks a scorer by `target.kind` and produces `Metrics`.
 5. The result is packed into a **`RunRecord`** (metrics + tokens + latency + provenance)
-   and rendered by `report.py`; raw data goes to JSON files.
-6. Each finished cell is written to a **checkpoint** immediately, so an interrupted sweep
-   resumes instead of redoing work.
+   and rendered by `report.py`; raw data goes to JSON files. `run_one` returns
+   `(RunRecord, list[Finding])` — the record only *counts* findings (`n_findings`), so the
+   findings themselves travel beside it and are written separately (`--findings-out`, or
+   `<scorecard>.findings.json` in the interactive session).
+6. Each **error-free** cell is written to a **checkpoint** immediately — record *and*
+   findings — so an interrupted sweep resumes instead of redoing work, and still writes a
+   complete findings.json. A cell that errored isn't stored, so it retries on resume.
 
 Errors in a single cell are caught and stored in `RunRecord.error` so the rest of the
 matrix keeps running; pass `--debug` to re-raise them instead (use this while developing).
@@ -113,7 +117,7 @@ vulnbench/
   cli.py                entry point: parse args, build Target + model, dispatch
   wizard.py             bare `vulnbench`: interactive sweep (menus, preflight, matrix)
   harness.py            run_one / run_matrix: time, score, pack into RunRecord
-  schema.py             Finding + Location — the universal result            ◀ seam
+  schema.py             Finding + Location + their JSON format               ◀ seam
   corpus/
     target.py           Target (what we scan) + TargetKind
   conditions/
