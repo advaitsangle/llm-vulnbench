@@ -1,32 +1,33 @@
 # llm-vulnbench
 
 A benchmark harness for **LLM-augmented web vulnerability detection**. It runs a
-ladder of detection *conditions* — SAST, DAST, an unaided LLM, and several
-LLM+scanner combinations — against the same vulnerable applications, normalizes
-every result to one finding schema, and scores them the same way against known
-ground truth. The goal is an apples-to-apples answer to "does the LLM actually
-help, and which way of wiring it in works?"
+ladder of detection *conditions* (SAST, DAST, an unaided LLM, and several
+LLM+scanner combinations) against the same vulnerable applications, converts
+every result to one finding schema, and scores them all the same way against
+known ground truth. The question it answers: does the LLM help, and which way of
+wiring it in works best?
 
-vulnbench is built to be **reconfigured, not rewritten**: the core is a small,
-stdlib-only harness, and the model, the scanners, and the target apps are all
-things you plug in. Swap the model with a flag; install only the tools the
-conditions you care about need; point it at whatever benchmark you have.
+vulnbench is built to be **reconfigured**: the core is a small, stdlib-only
+harness, and the model, the scanners, and the target apps all plug into it. Swap
+the model with a flag, install only the tools your chosen conditions need, and
+point it at whatever benchmark you have.
 
-> **Building on vulnbench?** Developer onboarding — the architecture, how to add a
-> condition / model / scorer, the dev loop, and the contribution workflow — lives in
-> **[ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnbench/blob/main/ARCHITECTURE.md)**.
+> **Building on vulnbench?** Developer onboarding lives in
+> **[ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnbench/blob/main/ARCHITECTURE.md)**:
+> the architecture, how to add a condition / model / scorer, the dev loop, and the
+> contribution workflow.
 
 ## What it does
 
 ### The condition ladder (WIP)
 
-- B1 — Semgrep only (SAST baseline)
-- B2 — OWASP ZAP only (DAST baseline)
-- B3 — LLM only (unaided model reads source)
-- C1 — LLM + Semgrep output (scanner-assisted triage)
-- C2 — LLM + ZAP output (scanner-assisted triage, DAST)
-- C3 — LLM-authored Semgrep rules (LLM improves the tool)
-- A1 — Multi-agent roles (scout / hunt / verify)
+- B1: Semgrep only (SAST baseline)
+- B2: OWASP ZAP only (DAST baseline)
+- B3: LLM only (unaided model reads source)
+- C1: LLM + Semgrep output (scanner-assisted triage)
+- C2: LLM + ZAP output (scanner-assisted triage, DAST)
+- C3: LLM-authored Semgrep rules (LLM improves the tool)
+- A1: Multi-agent roles (scout / hunt / verify)
 
 `vulnbench list` prints the live matrix. Conditions are independent classes
 (`run(target) -> findings + usage`), so you can mix and match which cells you run.
@@ -44,7 +45,7 @@ realistic apps (`--kind realistic`, fuzzy-matched by `scoring/webapps_benchmark.
 
 ## Installation
 
-The package itself has **zero required dependencies** — it imports and runs on a
+The package itself has **zero required dependencies**: it imports and runs on a
 clean Python 3.11+. Everything heavy is opt-in, so you only install what your
 chosen conditions actually use:
 
@@ -56,10 +57,10 @@ chosen conditions actually use:
 | static analysis | `pipx install semgrep` | B1, C1, C3 |
 | dynamic analysis | Docker (`deploy/` brings up the app + a ZAP daemon) | B2, C2 |
 
-Nothing above is needed to try the harness: the built-in `mock` model and the
-included tests run fully offline. And you don't have to set these up in advance — the
-interactive session checks for whatever your chosen conditions need and offers to install
-Semgrep or start the ZAP daemon for you.
+You need none of it to try the harness: the built-in `mock` model and the
+included tests run fully offline. You also don't have to set anything up in
+advance, because the interactive session checks what your chosen conditions need
+and offers to install Semgrep or start the ZAP daemon for you.
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install -e '.[pretty]'
@@ -69,7 +70,7 @@ python3 -m venv .venv && .venv/bin/pip install -e '.[pretty]'
 ### Install it as a command
 
 To get a `vulnbench` command on your `PATH` (instead of `python -m vulnbench.cli`),
-install it with [pipx](https://pipx.pypa.io) — an isolated app install that works
+install it with [pipx](https://pipx.pypa.io), an isolated app install that works
 even on a PEP-668 "externally managed" system Python:
 
 ```bash
@@ -85,7 +86,7 @@ just says `vulnbench …`.
 
 ## Usage
 
-### Quick start — just run `vulnbench`
+### Quick start: just run `vulnbench`
 
 With no arguments, vulnbench starts an **interactive session** that builds a comparative
 run. It walks you through six steps, every one multi-select:
@@ -94,14 +95,14 @@ run. It walks you through six steps, every one multi-select:
 vulnbench          # ↑/↓ move · space toggle · a toggle-all · enter confirm · q cancel
 ```
 
-1. **Models** — `mock`, whatever Ollama has pulled (auto-discovered), Anthropic models, or
+1. **Models**: `mock`, whatever Ollama has pulled (auto-discovered), Anthropic models, or
    a spec you type.
-2. **Targets** — the app catalog. Anything not yet on disk drops into the same
+2. **Targets**: the app catalog. Anything not yet on disk drops into the same
    point-or-install flow as `vulnbench targets`, so you never dead-end on a missing checkout.
-3. **Conditions** — the ladder (B1, C1, A1, …).
-4. **Run scope** — a **smoke test** (a seeded random sample of source files) or a **full run**.
-5. **Knobs** — only the ones your chosen conditions actually declare.
-6. **Confirm** — it prints the plan, then runs it.
+3. **Conditions**: the ladder (B1, C1, A1, …).
+4. **Run scope**: a **smoke test** (a seeded random sample of source files) or a **full run**.
+5. **Knobs**: only the ones your chosen conditions actually declare.
+6. **Confirm**: it prints the plan, then runs it.
 
 It then **preflights external tools** (offering to `pip install semgrep`, to start the ZAP
 daemon, or to point you at Ollama) and prints one comparative matrix: one row per
@@ -119,11 +120,12 @@ configuration, every metric as a column, best F1 starred.
 ```
 
 Pick 2 targets × 2 models × 3 conditions and you get the full comparison in one table.
-Note the `—` in the model column: a **scanner-only condition runs once per target, not
-once per model** — no model can change Semgrep's output, so sweeping it across models
-would re-pay the scan for identical numbers. The plan tells you when it does this.
+Note the `—` in the model column: a **scanner-only condition runs once per target**,
+however many models are in the sweep. No model can change Semgrep's output, so running it
+per model would re-pay the scan for identical numbers. The plan tells you when this
+happens.
 
-### Scripted runs — `vulnbench run`
+### Scripted runs with `vulnbench run`
 
 The interactive session needs a terminal. In a script or CI, drive the same harness with
 flags:
@@ -136,18 +138,18 @@ vulnbench run \
     --model mock -o scorecard.json --findings-out findings.json
 ```
 
-Everything you'd want to change is a **CLI flag or an environment variable** — no code
+Everything you'd want to change is a **CLI flag or an environment variable**, with no code
 edits. The three things you configure most are the model, a few environment variables, and
 optional per-condition knobs.
 
-### Pick a model — `--model`
+### Pick a model with `--model`
 
 Every LLM condition talks to one `ModelBackend.complete()` seam, so the model is a single
 argument. Three kinds are built in:
 
 | `--model` value | What it is | One-time setup |
 |---|---|---|
-| `mock` | offline, deterministic; canned schema-valid replies | nothing — built in |
+| `mock` | offline, deterministic; canned schema-valid replies | nothing, it's built in |
 | `local:<name>` | **your own local model** via [Ollama](https://ollama.com) | `ollama pull <name>` (daemon running) |
 | `api:anthropic:<name>` | **a frontier API model** (the "ceiling") | `pip install 'vulnbench[anthropic]'` + an API key |
 
@@ -169,12 +171,12 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
 ```
 
 Want a provider that isn't here (OpenAI, vLLM, a self-hosted endpoint)? It's one small
-backend class behind the same `ModelBackend.complete()` interface — see the "add a model
+backend class behind the same `ModelBackend.complete()` interface. See the "add a model
 backend" recipe in [ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnbench/blob/main/ARCHITECTURE.md). The conditions and scoring don't change.
 
 > **Local model on a non-default host?** The `local:` backend talks to Ollama at
-> `http://localhost:11434` (Ollama's default). A custom host/port isn't a CLI flag yet —
-> construct `OllamaBackend(host=...)` from Python, or run Ollama on the default address.
+> `http://localhost:11434` (Ollama's default). A custom host/port isn't a CLI flag yet.
+> Construct `OllamaBackend(host=...)` from Python, or run Ollama on the default address.
 
 ### Environment variables
 
@@ -184,19 +186,18 @@ backend" recipe in [ARCHITECTURE.md](https://github.com/advaitsangle/llm-vulnben
 | `VULNBENCH_TARGETS_DIR` | where `vulnbench targets` installs / looks for apps | `<repo>/targets` from a checkout; `~/.vulnbench/targets` when pip-installed |
 | `NO_COLOR` | disable all color and the banner | unset |
 
-### Per-condition knobs — `--config '{...}'`
+### Per-condition knobs with `--config '{...}'`
 
 Conditions accept optional tuning knobs as a JSON object. Each condition *declares* the
 knobs it understands, so the interactive session offers exactly the right ones with their
-defaults filled in, and on the command line a key that none of the chosen conditions
-declare is **rejected up front** (so a typo like `maxfiles` can't silently run with the
-default).
+defaults filled in. On the command line, a key that none of the chosen conditions declares
+is **rejected before the run starts**, so a typo like `maxfiles` fails loudly.
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
 | `sample_files`, `sample_seed` | B1, B3, C1, C3, A1 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
 | `max_files` | B3, A1 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
-| `max_file_bytes` | B3, C1, A1 | 60000 | per-file read cap (truncation is recorded, not silent) |
+| `max_file_bytes` | B3, C1, A1 | 60000 | per-file read cap (the run records any truncation) |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
 | `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
 | `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
@@ -215,11 +216,11 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv \
     --model local:qwen2.5-coder:14b --config '{"max_files": 20, "max_file_bytes": 80000}'
 ```
 
-### Smoke test — `--sample N`
+### Smoke test with `--sample N`
 
-A full OWASP Benchmark pass is 2740 files *per condition* — hours on a local 14B model.
-To check that a whole matrix is wired up correctly before committing to that, run every
-chosen condition against a small **random sample** of the source files:
+A full OWASP Benchmark pass is 2740 files *per condition*, which is hours on a local 14B
+model. To check that a whole matrix is wired up correctly before committing to that, run
+every chosen condition against a small **random sample** of the source files:
 
 ```bash
 # all the source-based conditions, against the same 10 randomly chosen files
@@ -228,11 +229,10 @@ vulnbench run --condition B1 B3 C1 A1 --source ./src --ground-truth gt.csv \
 ```
 
 The sample is **seeded** (`--sample-seed`, default 42), so it's the same slice on every
-machine and every re-run — a smoke result is reproducible and a resumed checkpoint keeps
-comparing like with like. Every condition in the sweep sees the *same* files, which is
-what makes the row-to-row comparison meaningful. Scoring stays honest: only the sampled
-test cases count toward the denominator, so recall isn't buried by the files nobody
-looked at.
+machine and every re-run. That makes a smoke result reproducible and keeps a resumed
+checkpoint comparing like with like. Every condition in the sweep sees the *same* files,
+which is what makes the row-to-row comparison meaningful. Only the sampled test cases
+count toward the denominator, so recall still reflects the files that were examined.
 
 ```bash
 vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock \
@@ -241,17 +241,17 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock \
 
 Sampling applies to the conditions that read source (B1, B3, C1, C3, A1); the DAST cells
 (B2, C2) attack a running URL and ignore it. In the interactive session this is step 4,
-**Run scope** — pick *smoke test* or *full run*.
+**Run scope**, where you pick *smoke test* or *full run*.
 
-### Output: highlight on screen, detail in files
+### Output: a summary on screen, full data in files
 
 With `rich` installed (the `pretty` extra), `run` shows a banner, a live progress
 bar across the conditions, and a color-coded summary table (F1 green ≥ 0.70,
 yellow ≥ 0.50, red below). The full data goes to files: `-o scorecard.json`
 (metrics + provenance + trace per condition) and `--findings-out findings.json`
-(every normalized finding, for FP/FN auditing). Pretty mode auto-engages on a
-TTY; piping or `--plain` falls back to plain text, and without `rich` it degrades
-gracefully.
+(every normalized finding, for FP/FN auditing). Pretty mode turns itself on for a
+TTY; piping the output or passing `--plain` falls back to plain text, and the
+reporter still works when `rich` isn't installed.
 
 ```
                      vulnbench · BenchmarkJava
@@ -264,9 +264,9 @@ gracefully.
 
 ### Pause and resume (on by default)
 
-A sweep can be slow — a local 14B model triaging hundreds of files takes a while,
-and a laptop can sleep or run out of RAM mid-run. So every finished condition is
-**checkpointed to disk the moment it completes** (`runs/checkpoint-<hash>.json`,
+A sweep can be slow. A local 14B model triaging hundreds of files takes a while,
+and a laptop can sleep or run out of RAM mid-run. So vulnbench **writes every
+finished condition to disk the moment it completes** (`runs/checkpoint-<hash>.json`,
 gitignored). Re-run the same command and it skips the conditions that already
 finished and continues from where it stopped:
 
@@ -280,15 +280,15 @@ vulnbench run --condition B1 B3 C1 --source ./src \
 The checkpoint is keyed on the run inputs (target, model, config, ground truth),
 so changing any of them starts fresh automatically. Use `--fresh` to force a
 clean run, or `--checkpoint PATH` to choose where it's stored. Interactive sweeps resume
-the same way — a cell served from a checkpoint reports `resumed` instead of re-running.
+the same way: a cell served from a checkpoint reports `resumed`.
 
 ### Test apps: the `targets` manager
 
-The vulnerable apps under test are **never shipped with the repo** (they're large
-and live in the gitignored `targets/` — or `~/.vulnbench/targets` for a
-pip-installed vulnbench). `vulnbench targets` is an opt-in manager
-for them — an arrow-key menu (↑/↓ move, space toggle, enter confirm, `q`/Ctrl-C
-cancel) over a catalog defined in [`vulnbench/targets.toml`](https://github.com/advaitsangle/llm-vulnbench/blob/main/vulnbench/targets.toml):
+The vulnerable apps under test **never ship with the repo**. They're large, and
+they live in the gitignored `targets/` (or `~/.vulnbench/targets` for a
+pip-installed vulnbench). `vulnbench targets` is an opt-in manager for them: an
+arrow-key menu (↑/↓ move, space toggle, enter confirm, `q`/Ctrl-C cancel) over a
+catalog defined in [`vulnbench/targets.toml`](https://github.com/advaitsangle/llm-vulnbench/blob/main/vulnbench/targets.toml):
 
 ```bash
 vulnbench targets            # interactive: pick apps, then point-or-install each
@@ -297,10 +297,11 @@ vulnbench targets --all      # select everything (skip the menu)
 vulnbench targets --update   # pull already-linked git clones to latest upstream
 ```
 
-Each app's location is a **reference, not a fixed path** (stored in the gitignored
-`targets/registry.json`). For an app that isn't linked yet you choose, per app:
+Each app's location is stored as a **reference** in the gitignored
+`targets/registry.json`, so an app can live anywhere on disk. For an app that isn't
+linked yet you choose, per app:
 
-- **point** at a copy you already have sitting around (any directory — no clone), or
+- **point** at a copy you already have sitting around (any directory, no clone), or
 - **install** a fresh shallow clone into a location you pick (default `targets/<name>`).
 
 A clone already at the default `targets/<name>` is auto-recognized, so existing
@@ -315,13 +316,13 @@ vulnbench run --condition B1 \
     --ground-truth ./vulns.json --kind realistic
 ```
 
-Add an app by appending an `[[app]]` block to `targets.toml` — no code changes.
+Add an app by appending an `[[app]]` block to `targets.toml`, with no code changes.
 The catalog ships with Juice Shop, DVWA, WebGoat, and OWASP BenchmarkJava.
 
 ### Getting an OWASP Benchmark target
 
-The reference scored target is the **OWASP BenchmarkJava** app — 2740 Java test
-cases, each labeled with one CWE as a true/false positive. `vulnbench targets`
+The reference scored target is the **OWASP BenchmarkJava** app: 2740 Java test
+cases, each labeled with one CWE as a true or false positive. `vulnbench targets`
 can fetch it (it's in the catalog), or clone it into `targets/` directly:
 
 ```bash
@@ -330,11 +331,11 @@ git clone https://github.com/OWASP-Benchmark/BenchmarkJava targets/BenchmarkJava
 
 That single clone gives you everything the harness needs:
 
-- **Source tree** `targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode/`
-  — the `--source` for the static conditions (B1, B3, C1).
-- **Ground truth** `targets/BenchmarkJava/expectedresults-1.2.csv` — the `--ground-truth`
-  every condition is scored against.
-- **DAST crawl spec** `targets/BenchmarkJava/data/benchmark-crawler-http.xml` — used to
+- **Source tree** at `targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode/`,
+  the `--source` for the static conditions (B1, B3, C1).
+- **Ground truth** at `targets/BenchmarkJava/expectedresults-1.2.csv`, the
+  `--ground-truth` every condition is scored against.
+- **DAST crawl spec** at `targets/BenchmarkJava/data/benchmark-crawler-http.xml`, used to
   seed ZAP for the dynamic conditions (B2, C2).
 
 A scored static run then needs no extra services:
