@@ -9,11 +9,14 @@ Registry maps the ids used in the proposal to classes:
     C2  LLM + ZAP output             (scanner-assisted)     [implemented]
     C3  LLM-authored Semgrep rules   (LLM improves tool)    [implemented]
     A1  Multi-agent roles            (scout/hunt/verify)    [implemented]
+    A7  Few-shot labeled examples                           [implemented]
+    A8  Chain-of-thought (reason before verdict)            [implemented]
 """
 
 from __future__ import annotations
 
 from .a1_agents import A1MultiAgent
+from .a7_a8_fewshot_cot import A7FewShot, A8ChainOfThought
 from .b1_semgrep import B1Semgrep
 from .b2_zap import B2Zap
 from .b3_llm import B3LLM
@@ -30,6 +33,8 @@ REGISTRY: dict[str, type[Condition]] = {
     "C2": C2LLMZap,
     "C3": C3LLMRules,
     "A1": A1MultiAgent,
+    "A7": A7FewShot,
+    "A8": A8ChainOfThought,
 }
 
 
@@ -50,4 +55,6 @@ __all__ = [
     "KnobType",
     "REGISTRY",
     "get_condition",
+    "A7FewShot",
+    "A8ChainOfThought",
 ]

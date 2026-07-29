@@ -132,6 +132,7 @@ vulnbench/
     c2_llm_zap.py       C2  LLM triages ZAP findings
     c3_llm_rules.py     C3  LLM authors Semgrep rules, then Semgrep runs them
     a1_agents.py        A1  multi-agent scout → hunter → verifier
+    a7_a8_fewshot_cot.py  A7 few-shot labeled examples · A8 chain-of-thought
     llm_common.py       shared LLM prompt contract + JSON-reply parsing
   models/
     base.py             ModelBackend + Completion + Usage                    ◀ seam
