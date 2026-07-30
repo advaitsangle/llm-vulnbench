@@ -29,6 +29,7 @@ point it at whatever benchmark you have.
 - C3: LLM-authored Semgrep rules (LLM improves the tool)
 - A1: Multi-agent roles (scout / hunt / verify)
 - A2: AST-augmented context (model reads a parsed AST instead of raw source)
+- A3: CFG/DFG-augmented context (model reads a control-/data-flow sketch instead of raw source)
 
 `vulnbench list` prints the live matrix. Conditions are independent classes
 (`run(target) -> findings + usage`), so you can mix and match which cells you run.
@@ -53,11 +54,11 @@ chosen conditions actually use:
 | You want… | Install | Used by |
 |-----------|---------|---------|
 | pretty CLI (banner, progress bar, color table) | `pip install 'vulnbench[pretty]'` (`rich`) | all runs (degrades to plain text without it) |
-| a local model | [Ollama](https://ollama.com) + `ollama pull <model>` | B3, C1, C2, C3, A1, A2 |
-| a frontier model | `pip install 'vulnbench[anthropic]'` + `ANTHROPIC_API_KEY` | B3, C1, C2, C3, A1, A2 |
+| a local model | [Ollama](https://ollama.com) + `ollama pull <model>` | B3, C1, C2, C3, A1, A2, A3 |
+| a frontier model | `pip install 'vulnbench[anthropic]'` + `ANTHROPIC_API_KEY` | B3, C1, C2, C3, A1, A2, A3 |
 | static analysis | `pipx install semgrep` | B1, C1, C3 |
 | dynamic analysis | Docker (`deploy/` brings up the app + a ZAP daemon) | B2, C2 |
-| AST parsing | `pip install 'vulnbench[structural]'` (`tree-sitter` + grammars) | A2 |
+| AST parsing | `pip install 'vulnbench[structural]'` (`tree-sitter` + grammars) | A2, A3 |
 
 You need none of it to try the harness: the built-in `mock` model and the
 included tests run fully offline. You also don't have to set anything up in
@@ -197,10 +198,11 @@ is **rejected before the run starts**, so a typo like `maxfiles` fails loudly.
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
-| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A2 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
-| `max_files` | B3, A1, A2 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
-| `max_file_bytes` | B3, C1, A1, A2 | 60000 | per-file read cap (the run records any truncation) |
+| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A2, A3 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
+| `max_files` | B3, A1, A2, A3 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
+| `max_file_bytes` | B3, C1, A1, A2, A3 | 60000 | per-file read cap (the run records any truncation) |
 | `ast_max_bytes` | A2 | 60000 | truncate each file's rendered AST text past this many characters |
+| `cfg_max_bytes` | A3 | 60000 | truncate each file's rendered CFG/DFG text past this many characters |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
 | `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
 | `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
