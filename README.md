@@ -28,6 +28,7 @@ point it at whatever benchmark you have.
 - C2: LLM + ZAP output (scanner-assisted triage, DAST)
 - C3: LLM-authored Semgrep rules (LLM improves the tool)
 - A1: Multi-agent roles (scout / hunt / verify)
+- A5: Risky-portion extraction, then B3 evaluation (the model cuts the file first)
 
 `vulnbench list` prints the live matrix. Conditions are independent classes
 (`run(target) -> findings + usage`), so you can mix and match which cells you run.
@@ -195,14 +196,17 @@ is **rejected before the run starts**, so a typo like `maxfiles` fails loudly.
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
-| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
-| `max_files` | B3, A1 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
-| `max_file_bytes` | B3, C1, A1 | 60000 | per-file read cap (the run records any truncation) |
+| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A5 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
+| `max_files` | B3, A1, A5 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
+| `max_file_bytes` | B3, C1, A1, A5 | 60000 | per-file read cap (the run records any truncation) |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
 | `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
 | `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
 | `triage`, `verify` | A1 | true | ablation toggles for the scout / verifier roles |
 | `triage_head_bytes`, `triage_batch` | A1 | 1500, 10 | scout's per-file head size and files-per-batch |
+| `reduce` | A5 | true | run the reducer pass (off = A5 is exactly B3, the control) |
+| `max_chunk_bytes` | A5 | 8000 | truncate the reducer's extracted code past this many bytes |
+| `on_empty` | A5 | `full` | reducer extracted nothing: evaluate the `full` file, or `skip` it |
 | `author_files`, `author_max_bytes` | C3 | 8, 4000 | example files (and bytes each) shown to the rule author |
 | `rules_out` / `rules_in` | C3 | — | author rules to a file / score with an existing rules file |
 | `scan_out` / `scan_in` | C1, C2 | — | split the scanner phase from model triage (also `--scan-out`/`--scan-in`) |
@@ -239,7 +243,7 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock \
     --sample 25 --sample-seed 7        # a different, equally reproducible slice
 ```
 
-Sampling applies to the conditions that read source (B1, B3, C1, C3, A1); the DAST cells
+Sampling applies to the conditions that read source (B1, B3, C1, C3, A1, A5); the DAST cells
 (B2, C2) attack a running URL and ignore it. In the interactive session this is step 4,
 **Run scope**, where you pick *smoke test* or *full run*.
 
