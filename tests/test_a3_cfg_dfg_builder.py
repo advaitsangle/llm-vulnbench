@@ -91,6 +91,26 @@ def test_block_label_keeps_a_wrapped_statement_whole():
     assert block == block.strip() or "\n" not in block  # still one line
 
 
+def test_finally_body_becomes_blocks_reachable_from_every_path():
+    # A sink in a cleanup block used to appear in no block and on no edge at all.
+    code = (
+        "class Foo {\n"
+        "    void bar(String u) {\n"
+        "        try { risky(u); }\n"
+        "        catch (Exception e) { log(e); }\n"
+        '        finally { Runtime.getRuntime().exec("cleanup " + u); }\n'
+        "    }\n"
+        "}\n"
+    )
+    tree = ast_support.parse_tree("Foo.java", code)
+    text, _ = build_cfg_dfg(tree, 100_000)
+
+    assert "cleanup" in text
+    # finally runs on the normal path and out of the handler, so both reach it.
+    assert text.count("[finally]") == 2
+    assert "[catch]" in text
+
+
 def test_block_label_caps_a_long_statement_with_an_ellipsis():
     from vulnbench.conditions.a3_cfg_dfg_context import _MAX_BLOCK_CHARS
 

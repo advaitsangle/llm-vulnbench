@@ -220,6 +220,23 @@ def _statements(block_node: Any) -> list[Any]:
 _MAX_BLOCK_CHARS = ast_support._MAX_LEAF_CHARS
 
 
+def _finally_statements(node: Any) -> list[Any]:
+    """The statement list of a ``try``'s finally region, or ``[]`` if it has none.
+
+    Grammars disagree on the shape: Java/Python hang a ``finally_clause`` off the
+    try, JS/TS reach it through a ``finalizer`` field. Both wrap a block.
+    """
+    clause = node.child_by_field_name("finalizer") or next(
+        (c for c in node.named_children if c.type == "finally_clause"), None
+    )
+    if clause is None:
+        return []
+    if clause.type in _BLOCK_TYPES:
+        return _statements(clause)
+    block = next((c for c in clause.named_children if c.type in _BLOCK_TYPES), None)
+    return _statements(block) if block is not None else []
+
+
 def _summary(node: Any) -> str:
     """A short one-line label for a block: the statement's source, flattened.
 
@@ -332,6 +349,16 @@ class _CFGBuilder:
             cid = c_entry if c_entry is not None else self._new_block("CATCH", clause)
             self._edge(try_id, cid, "catch")
             exits.extend(c_exits if c_entry is not None else [cid])
+
+        # finally runs on the way out of *every* path — normal exit and each catch —
+        # so it takes an edge from all of them and becomes the statement's only exit.
+        fin_stmts = _finally_statements(node)
+        if fin_stmts:
+            fin_entry, fin_exits = self.build_sequence(fin_stmts)
+            if fin_entry is not None:
+                for e in exits:
+                    self._edge(e, fin_entry, "finally")
+                exits = fin_exits
         return try_id, exits
 
 
