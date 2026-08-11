@@ -1,12 +1,16 @@
 name: CI
 
-# Gate every PR (and pushes to main) on lint + tests so review is about
-# design, not "did this break the build." Make this a *required* status check
+# Gate every PR (and pushes to an integration branch) on lint + tests so review is
+# about design, not "did this break the build." Make this a *required* status check
 # in branch-protection settings — see .github/CODEOWNERS for the frozen paths.
+#
+# cs453 is listed because conflicts get resolved there by hand as conditions land
+# (every condition edits the same registry and docs). A hand-resolved merge is
+# exactly what green PR checks cannot vouch for, so the merged state gets its own run.
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, cs453]
 
 # A newer push to the same branch/PR cancels the older in-flight run.
 concurrency:
