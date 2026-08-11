@@ -215,11 +215,24 @@ def _statements(block_node: Any) -> list[Any]:
     return [block_node]
 
 
+#: Longest block label. Matches ast_support._MAX_LEAF_CHARS so A2 and A3 truncate a
+#: statement at the same width, and the two conditions stay comparable on prompt size.
+_MAX_BLOCK_CHARS = ast_support._MAX_LEAF_CHARS
+
+
 def _summary(node: Any) -> str:
-    """A short one-line label for a block: the node's own source line, trimmed."""
+    """A short one-line label for a block: the statement's source, flattened.
+
+    Flattened rather than first-line-only: OWASP Benchmark is google-java-formatted,
+    so sink calls wrap as a rule, and keeping ``splitlines()[0]`` dropped exactly the
+    part that carries the vulnerability — ``println(`` without its argument. Same
+    reasoning, and the same treatment, as :func:`ast_support._leaf_text`.
+    """
     text = node.text.decode("utf-8", "replace") if node.text else ""
-    first_line = text.splitlines()[0] if text else ""
-    return first_line.strip()[:80]
+    flat = " ".join(text.split())
+    if len(flat) > _MAX_BLOCK_CHARS:
+        return flat[:_MAX_BLOCK_CHARS] + "…"
+    return flat
 
 
 class _CFGBuilder:

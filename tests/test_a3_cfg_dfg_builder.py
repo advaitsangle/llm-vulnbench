@@ -72,6 +72,39 @@ def test_no_function_scope_falls_back_to_a_module_scope():
     assert "TOP_LEVEL" in text
 
 
+def test_block_label_keeps_a_wrapped_statement_whole():
+    # Benchmark is google-java-formatted, so sink calls wrap. Keeping only the first
+    # physical line dropped the argument — `println(` with nothing in it.
+    code = (
+        "class Foo {\n"
+        "    void bar(String u) {\n"
+        "        response.getWriter().println(\n"
+        '                "prefix" + u + "suffix");\n'
+        "    }\n"
+        "}\n"
+    )
+    tree = ast_support.parse_tree("Foo.java", code)
+    text, _ = build_cfg_dfg(tree, 100_000)
+
+    block = next(ln for ln in text.splitlines() if "[STMT" in ln)
+    assert "prefix" in block and "suffix" in block and "u" in block
+    assert block == block.strip() or "\n" not in block  # still one line
+
+
+def test_block_label_caps_a_long_statement_with_an_ellipsis():
+    from vulnbench.conditions.a3_cfg_dfg_context import _MAX_BLOCK_CHARS
+
+    long_arg = "A" * (_MAX_BLOCK_CHARS + 60)
+    tree = ast_support.parse_tree(
+        "Foo.java", f'class Foo {{ void bar() {{ sink("{long_arg}"); }} }}\n'
+    )
+    text, _ = build_cfg_dfg(tree, 100_000)
+
+    block = next(ln for ln in text.splitlines() if "[STMT" in ln)
+    assert block.endswith("…")
+    assert long_arg not in block
+
+
 def test_truncates_and_reports_it():
     text, truncated = _build(max_chars=20)
     assert truncated
