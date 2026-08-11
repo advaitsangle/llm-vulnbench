@@ -10,12 +10,14 @@ Registry maps the ids used in the proposal to classes:
     C3  LLM-authored Semgrep rules   (LLM improves tool)    [implemented]
     A1  Multi-agent roles            (scout/hunt/verify)    [implemented]
     A2  AST-augmented context        (structural context)   [implemented]
+    A3  CFG/DFG-augmented context    (structural context)   [implemented]
 """
 
 from __future__ import annotations
 
 from .a1_agents import A1MultiAgent
 from .a2_ast_context import A2ASTContext
+from .a3_cfg_dfg_context import A3CFGDFGContext
 from .b1_semgrep import B1Semgrep
 from .b2_zap import B2Zap
 from .b3_llm import B3LLM
@@ -33,6 +35,7 @@ REGISTRY: dict[str, type[Condition]] = {
     "C3": C3LLMRules,
     "A1": A1MultiAgent,
     "A2": A2ASTContext,
+    "A3": A3CFGDFGContext,
 }
 
 
