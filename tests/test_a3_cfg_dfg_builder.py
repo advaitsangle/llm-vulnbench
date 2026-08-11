@@ -91,6 +91,28 @@ def test_block_label_keeps_a_wrapped_statement_whole():
     assert block == block.strip() or "\n" not in block  # still one line
 
 
+def test_comments_are_not_basic_blocks():
+    # line_comment/block_comment are *named* nodes, so they used to become blocks
+    # and the edge chain threaded through them.
+    code = (
+        "class Foo {\n"
+        "    void bar(String u) {\n"
+        "        // put stuff in the collection\n"
+        "        int a = 1;\n"
+        "        /* another */\n"
+        "        sink(u);\n"
+        "    }\n"
+        "}\n"
+    )
+    tree = ast_support.parse_tree("Foo.java", code)
+    text, _ = build_cfg_dfg(tree, 100_000)
+
+    assert "put stuff" not in text and "another" not in text
+    blocks = [ln for ln in text.splitlines() if "[STMT" in ln]
+    assert len(blocks) == 2
+    assert text.count("->") == 1  # a straight edge, not one hop per comment
+
+
 def test_finally_body_becomes_blocks_reachable_from_every_path():
     # A sink in a cleanup block used to appear in no block and on no edge at all.
     code = (

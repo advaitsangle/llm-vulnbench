@@ -50,6 +50,9 @@ _LOOP_TYPES = {
 }
 _BLOCK_TYPES = {"block", "compound_statement", "statement_block"}
 _DEF_PARENT_TYPES = {"variable_declarator", "formal_parameter", "catch_formal_parameter"}
+#: Comment node types across the targeted grammars. Named nodes, so they reach
+#: _statements as if they were statements unless filtered.
+_COMMENT_TYPES = {"line_comment", "block_comment", "comment"}
 
 
 class A3CFGDFGContext(Condition):
@@ -209,9 +212,14 @@ def _find_scopes(node: Any) -> list[tuple[str, Any]]:
 
 
 def _statements(block_node: Any) -> list[Any]:
-    """The statement sequence of a body node (unwraps a ``block``/... wrapper)."""
+    """The statement sequence of a body node (unwraps a ``block``/... wrapper).
+
+    Comments are dropped: they are *named* nodes in these grammars, so they would
+    otherwise become basic blocks and the sequential edge chain would thread through
+    them — a graph asserting that control flows through a comment.
+    """
     if block_node.type in _BLOCK_TYPES:
-        return list(block_node.named_children)
+        return [c for c in block_node.named_children if c.type not in _COMMENT_TYPES]
     return [block_node]
 
 
