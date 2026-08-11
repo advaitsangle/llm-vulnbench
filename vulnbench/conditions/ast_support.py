@@ -102,8 +102,29 @@ def parse_tree(path: str, code: str) -> Any | None:
     return parser.parse(code.encode("utf-8", errors="replace"))
 
 
+#: Longest source snippet appended to one leaf. Only string literals realistically run
+#: long, and their opening characters are what carry the signal (a SELECT, a file path).
+_MAX_LEAF_CHARS = 120
+
+
+def _leaf_text(node: Any) -> str:
+    """The source behind a leaf node, flattened to one line and length-capped.
+
+    Only ever called on leaves: ``node.text`` on an interior node returns that node's
+    whole source span, so a class declaration would re-emit the entire file and every
+    ancestor would repeat its subtree.
+    """
+    raw = node.text
+    if not raw:
+        return ""
+    text = " ".join(raw.decode("utf-8", errors="replace").split())
+    if len(text) > _MAX_LEAF_CHARS:
+        return text[:_MAX_LEAF_CHARS] + "…"
+    return text
+
+
 def render_ast(tree: Any, max_chars: int) -> tuple[str, bool]:
-    """Render a parsed tree as compact indented text: ``type [Lline]`` per named node.
+    """Render a parsed tree as compact indented text: ``type [Lline] source`` per named node.
 
     Only *named* nodes (tree-sitter's term for grammar productions — identifiers,
     statements, expressions — as opposed to bare punctuation/keyword tokens like
@@ -111,12 +132,26 @@ def render_ast(tree: Any, max_chars: int) -> tuple[str, bool]:
     so a printed node's ancestry (which statement it's nested inside) stays legible
     even where unnamed wrapper nodes are skipped. Returns ``(text, truncated)`` so
     callers can record truncation the same way :func:`source_files.read_capped` does.
+
+    Leaves carry their source text, because node *types* alone name no code: a SQL
+    injection and a safe helper both render as ``method_invocation`` over ``identifier``
+    over ``string_literal``. Without the text A2 would show the model a shape stripped of
+    every name and literal, and its gap against B3 would measure that removal rather than
+    the structure being added — the opposite of what the condition claims to test.
+
+    Known limit: operators are unnamed, so a ``binary_expression`` still does not say
+    whether it concatenates or adds.
     """
     lines: list[str] = []
 
     def walk(node: Any, depth: int) -> None:
         if node.is_named:
-            lines.append(f"{'  ' * depth}{node.type} [L{node.start_point[0] + 1}]")
+            line = f"{'  ' * depth}{node.type} [L{node.start_point[0] + 1}]"
+            if node.child_count == 0:
+                snippet = _leaf_text(node)
+                if snippet:
+                    line += f"  {snippet}"
+            lines.append(line)
         for child in node.children:
             walk(child, depth + 1)
 

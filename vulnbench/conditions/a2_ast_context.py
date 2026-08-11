@@ -121,7 +121,7 @@ def _user_prompt(path: str, body: str, used_fallback: bool) -> str:
     else:
         kind = (
             "abstract syntax tree — one line per AST node as `type [Lline]`, "
-            "indented by nesting depth, not the plain source text"
+            "indented by nesting depth, with each leaf followed by its source text"
         )
     return (
         f"Analyze this source file for security vulnerabilities. You are shown its "
