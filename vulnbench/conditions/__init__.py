@@ -12,8 +12,6 @@ Registry maps the ids used in the proposal to classes:
     A2  AST-augmented context        (structural context)   [implemented]
     A3  CFG/DFG-augmented context    (structural context)   [implemented]
     A5  Risky-portion extraction     (reduce, then B3)      [implemented]
-    A7  Few-shot labeled examples                           [implemented]
-    A8  Chain-of-thought (reason before verdict)            [implemented]
 """
 
 from __future__ import annotations
@@ -22,7 +20,6 @@ from .a1_agents import A1MultiAgent
 from .a2_ast_context import A2ASTContext
 from .a3_cfg_dfg_context import A3CFGDFGContext
 from .a5_parse import A5Parse
-from .a7_a8_fewshot_cot import A7FewShot, A8ChainOfThought
 from .b1_semgrep import B1Semgrep
 from .b2_zap import B2Zap
 from .b3_llm import B3LLM
@@ -42,8 +39,6 @@ REGISTRY: dict[str, type[Condition]] = {
     "A2": A2ASTContext,
     "A3": A3CFGDFGContext,
     "A5": A5Parse,
-    "A7": A7FewShot,
-    "A8": A8ChainOfThought,
 }
 
 
@@ -64,6 +59,4 @@ __all__ = [
     "KnobType",
     "REGISTRY",
     "get_condition",
-    "A7FewShot",
-    "A8ChainOfThought",
 ]
