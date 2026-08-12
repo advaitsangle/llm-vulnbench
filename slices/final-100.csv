@@ -1,7 +1,4 @@
-# final-100 — uniform random slice of OWASP BenchmarkJava v1.2
-# sample_files=100, sample_seed=42; seeded, so identical on every machine.
-# 61 real / 39 safe. Reproduce with: --sample 100 --sample-seed 42
-# name,category,real,cwe
+name,category,real,cwe
 BenchmarkTest00027,sqli,true,89
 BenchmarkTest00103,sqli,true,89
 BenchmarkTest00109,sqli,true,89
