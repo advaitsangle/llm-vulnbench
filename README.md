@@ -17,6 +17,10 @@ point it at whatever benchmark you have.
 > the architecture, how to add a condition / model / scorer, the dev loop, and the
 > contribution workflow.
 
+> Originally developed as the final project for
+> **[CS 453](https://uwflow.com/course/cs453)**. See **[docs/](docs/)** for the
+> evolution of the project — formalised methodology, findings, and write-ups.
+
 ## What it does
 
 ### The condition ladder (WIP)
