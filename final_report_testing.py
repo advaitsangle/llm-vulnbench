@@ -21,7 +21,7 @@ conds = sys.argv[1:]
 if not conds:
     sys.exit(__doc__)
 
-names = [row["name"] for row in csv.DictReader((REPO / "slices/final-100.csv").open())]
+names = [row["name"] for row in csv.DictReader((REPO / "final run" / "final-100.csv").open())]
 # Every condition run, plus a timestamp, so re-runs never overwrite each other.
 tag = "-".join(conds) + datetime.now().strftime("-%Y%m%d-%H%M%S")
 
