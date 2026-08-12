@@ -188,7 +188,8 @@ _TOP_EPILOG = """\
 conditions:
   B1 Semgrep (SAST)   B2 ZAP (DAST)   B3 LLM only
   C1 LLM+Semgrep   C2 LLM+ZAP   C3 LLM-authored rules   A1 multi-agent
-  A7 few-shot examples   A8 chain-of-thought
+  A2 AST context   A3 CFG/DFG context   A5 risky-portion extraction
+  A7 few-shot examples   A8 chain-of-thought   A9 chained prompts (Top-25 hunt)
   (run `vulnbench list` for the live matrix)
 
 models (--model):

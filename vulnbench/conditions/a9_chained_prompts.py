@@ -135,7 +135,7 @@ _SUMMARY_UNAVAILABLE = {
 
 class A9ChainedPrompts(Condition):
     id = "A9"
-    label = "Chained prompts (summarize/flag/verify)"
+    label = "Chained prompts, Top-25 CWE hunt (summarize/flag/verify)"
     needs_model = True
     needs_source = True
     knobs = SCAN_KNOBS + SAMPLE_KNOBS

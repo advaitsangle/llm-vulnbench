@@ -37,7 +37,8 @@ point it at whatever benchmark you have.
 - A5: Risky-portion extraction, then B3 evaluation (the model cuts the file first)
 - A7: Few-shot labeled examples (prompt-level priming)
 - A8: Chain-of-thought (reason before verdict)
-- A9: Chained prompts (summarize / flag candidates / verify)
+- A9: Chained prompts, Top-25 CWE hunt (summarize / flag candidates / verify) —
+  stage 2 keeps only MITRE Top-25 candidates, so it hunts that label set, not all CWEs
 
 `vulnbench list` prints the live matrix. Conditions are independent classes
 (`run(target) -> findings + usage`), so you can mix and match which cells you run.
