@@ -28,6 +28,11 @@ point it at whatever benchmark you have.
 - C2: LLM + ZAP output (scanner-assisted triage, DAST)
 - C3: LLM-authored Semgrep rules (LLM improves the tool)
 - A1: Multi-agent roles (scout / hunt / verify)
+- A2: AST-augmented context (model reads a parsed AST instead of raw source)
+- A3: CFG/DFG-augmented context (model reads a control-/data-flow sketch instead of raw source)
+- A5: Risky-portion extraction, then B3 evaluation (the model cuts the file first)
+- A7: Few-shot labeled examples (prompt-level priming)
+- A8: Chain-of-thought (reason before verdict)
 - A9: Chained prompts (summarize / flag candidates / verify)
 
 `vulnbench list` prints the live matrix. Conditions are independent classes
@@ -53,10 +58,11 @@ chosen conditions actually use:
 | You want… | Install | Used by |
 |-----------|---------|---------|
 | pretty CLI (banner, progress bar, color table) | `pip install 'vulnbench[pretty]'` (`rich`) | all runs (degrades to plain text without it) |
-| a local model | [Ollama](https://ollama.com) + `ollama pull <model>` | B3, C1, C2, C3, A1, A9 |
-| a frontier model | `pip install 'vulnbench[anthropic]'` + `ANTHROPIC_API_KEY` | B3, C1, C2, C3, A1, A9 |
+| a local model | [Ollama](https://ollama.com) + `ollama pull <model>` | B3, C1, C2, C3, A1, A2, A3, A5, A7, A8, A9 |
+| a frontier model | `pip install 'vulnbench[anthropic]'` + `ANTHROPIC_API_KEY` | B3, C1, C2, C3, A1, A2, A3, A5, A7, A8, A9 |
 | static analysis | `pipx install semgrep` | B1, C1, C3 |
 | dynamic analysis | Docker (`deploy/` brings up the app + a ZAP daemon) | B2, C2 |
+| AST parsing | `pip install 'vulnbench[structural]'` (`tree-sitter` + grammars) | A2, A3 |
 
 You need none of it to try the harness: the built-in `mock` model and the
 included tests run fully offline. You also don't have to set anything up in
@@ -196,14 +202,20 @@ is **rejected before the run starts**, so a typo like `maxfiles` fails loudly.
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
-| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A9 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
-| `max_files` | B3, A1, A9 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
-| `max_file_bytes` | B3, C1, A1, A9 | 60000 | per-file read cap (the run records any truncation) |
+| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A2, A3, A5, A7, A8, A9 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
+| `max_files` | B3, A1, A2, A3, A5, A7, A8, A9 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
+| `max_file_bytes` | B3, C1, A1, A2, A3, A5, A7, A8, A9 | 60000 | per-file read cap (the run records any truncation) |
+| `ast_max_bytes` | A2 | 60000 | truncate each file's rendered AST text past this many characters |
+| `cfg_max_bytes` | A3 | 60000 | truncate each file's rendered CFG/DFG text past this many characters |
+| `shots` | A7 | 4 | how many built-in labeled examples to replay (1-5; A7 always shows at least one) |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
 | `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
 | `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
 | `triage`, `verify` | A1 | true | ablation toggles for the scout / verifier roles |
 | `triage_head_bytes`, `triage_batch` | A1 | 1500, 10 | scout's per-file head size and files-per-batch |
+| `reduce` | A5 | true | run the reducer pass (off = A5 is exactly B3, the control) |
+| `max_chunk_bytes` | A5 | 8000 | truncate the reducer's extracted code past this many bytes |
+| `on_empty` | A5 | `full` | reducer extracted nothing: evaluate the `full` file, or `skip` it |
 | `author_files`, `author_max_bytes` | C3 | 8, 4000 | example files (and bytes each) shown to the rule author |
 | `rules_out` / `rules_in` | C3 | — | author rules to a file / score with an existing rules file |
 | `scan_out` / `scan_in` | C1, C2 | — | split the scanner phase from model triage (also `--scan-out`/`--scan-in`) |
@@ -240,7 +252,7 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock \
     --sample 25 --sample-seed 7        # a different, equally reproducible slice
 ```
 
-Sampling applies to the conditions that read source (B1, B3, C1, C3, A1, A9); the DAST cells
+Sampling applies to the conditions that read source (B1, B3, C1, C3, A1, A2, A3, A5, A7, A8, A9); the DAST cells
 (B2, C2) attack a running URL and ignore it. In the interactive session this is step 4,
 **Run scope**, where you pick *smoke test* or *full run*.
 

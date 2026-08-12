@@ -132,6 +132,9 @@ vulnbench/
     c2_llm_zap.py       C2  LLM triages ZAP findings
     c3_llm_rules.py     C3  LLM authors Semgrep rules, then Semgrep runs them
     a1_agents.py        A1  multi-agent scout → hunter → verifier
+    a5_parse.py         A5  model cuts the file to its risky portion, then B3 evaluates it
+    a7_fewshot.py       A7  labeled worked examples replayed before the file
+    a8_cot.py           A8  forced step-by-step reasoning before any verdict
     a9_chained_prompts.py A9 summarize → flag candidates → verify
     llm_common.py       shared LLM prompt contract + JSON-reply parsing
   models/

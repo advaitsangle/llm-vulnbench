@@ -19,6 +19,18 @@ from .base import Completion, ModelBackend, ToolCall, ToolSpec, Usage
 #: wizard's model discovery so the address is stated once.
 DEFAULT_HOST = "http://localhost:11434"
 
+#: Context window to request, in tokens. Ollama does *not* default to the model's
+#: full window — it loads a much smaller one and silently drops whatever overflows,
+#: with no error and nothing in the response to say it happened. That turns "this
+#: condition sends more context" into "this condition gets truncated", which would
+#: read as a real accuracy difference between conditions. So it is set explicitly.
+#:
+#: 16384 rather than qwen2.5-coder:14b's full 32768: the KV cache is ~192 KiB/token
+#: (48 layers x 8 KV heads x 128 dim, fp16), so 32k costs ~6.3 GiB on top of the
+#: ~9 GiB Q4_K_M weights — over the 16 GB budget the scored runs have to fit in.
+#: 16k costs ~3.1 GiB, leaving headroom. Raise it if the machine grows.
+DEFAULT_NUM_CTX = 16384
+
 
 class OllamaBackend(ModelBackend):
     """Talks to ``/api/chat`` on a local Ollama daemon."""
@@ -29,11 +41,13 @@ class OllamaBackend(ModelBackend):
         host: str = DEFAULT_HOST,
         temperature: float = 0.1,
         timeout: float = 600.0,
+        num_ctx: int = DEFAULT_NUM_CTX,
     ) -> None:
         self.model = model
         self.host = host.rstrip("/")
         self.temperature = temperature
         self.timeout = timeout
+        self.num_ctx = num_ctx
         self.name = f"local:{model}"
 
     def _complete(
@@ -46,7 +60,10 @@ class OllamaBackend(ModelBackend):
             "model": self.model,
             "messages": messages,
             "stream": False,
-            "options": {"temperature": kwargs.get("temperature", self.temperature)},
+            "options": {
+                "temperature": kwargs.get("temperature", self.temperature),
+                "num_ctx": kwargs.get("num_ctx", self.num_ctx),
+            },
         }
         if tools:
             payload["tools"] = [

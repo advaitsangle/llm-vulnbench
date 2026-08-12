@@ -37,6 +37,18 @@ Issues = "https://github.com/advaitsangle/llm-vulnbench/issues"
 [project.optional-dependencies]
 anthropic = ["anthropic>=0.40"]
 pretty = ["rich>=13"]
+# Parses source into an AST/CFG/DFG for A2/A3 (structural-context conditions).
+# One grammar package per language in conditions/source_files.py's CODE_EXTS.
+structural = [
+    "tree-sitter>=0.23",
+    "tree-sitter-java",
+    "tree-sitter-python",
+    "tree-sitter-javascript",
+    "tree-sitter-typescript",
+    "tree-sitter-php",
+    "tree-sitter-ruby",
+    "tree-sitter-go",
+]
 dev = ["pytest>=8", "ruff>=0.5", "rich>=13"]
 
 [project.scripts]
