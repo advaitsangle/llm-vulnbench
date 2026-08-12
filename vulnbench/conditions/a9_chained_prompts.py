@@ -17,8 +17,8 @@ from ..schema import Finding, Location, Verdict, benchmark_case_of
 from .base import Condition, ConditionContext, ConditionResult
 from .llm_common import (
     OUTPUT_CONTRACT,
+    SCORED_CWES,
     SYSTEM_PROMPT,
-    TOP25_CWES,
     _cwe_id,
     _extract_json_object,
     _int_or_none,
@@ -32,7 +32,7 @@ from .source_files import (
     sampled_paths_for,
 )
 
-_TOP25_IDS = frozenset(int(value) for value in re.findall(r"\d+", TOP25_CWES))
+_SCORED_IDS = frozenset(int(value) for value in re.findall(r"\d+", SCORED_CWES))
 
 SUMMARY_SYSTEM = (
     "You are a precise code analyst. Summarize only security-relevant facts that "
@@ -113,7 +113,7 @@ PROMPT_HASHES = {
         (
             CANDIDATE_SYSTEM
             + CANDIDATE_TASK
-            + CANDIDATE_CONTRACT.format(top25=TOP25_CWES)
+            + CANDIDATE_CONTRACT.format(top25=SCORED_CWES)
         ).encode()
     ).hexdigest(),
     "verify": hashlib.sha256(
@@ -290,7 +290,7 @@ def _summary_prompt(path: str, code: str) -> str:
 
 def _candidate_prompt(path: str, code: str, summary: dict) -> str:
     normalized = json.dumps(summary, sort_keys=True)
-    contract = CANDIDATE_CONTRACT.format(top25=TOP25_CWES)
+    contract = CANDIDATE_CONTRACT.format(top25=SCORED_CWES)
     return (
         f"{CANDIDATE_TASK}\n\n"
         f"File: {path}\n```\n{code}\n```\n\n"
@@ -354,7 +354,7 @@ def _parse_candidates(text: str) -> tuple[list[dict], bool, int]:
             invalid += 1
             continue
         cwe = _cwe_id(item.get("cwe"))
-        if cwe not in _TOP25_IDS:
+        if cwe not in _SCORED_IDS:
             invalid += 1
             continue
         candidates.append(

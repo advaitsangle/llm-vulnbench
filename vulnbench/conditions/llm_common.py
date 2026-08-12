@@ -25,37 +25,46 @@ SYSTEM_PROMPT = (
     "best fit is not on that list, pick the single closest entry that is."
 )
 
-#: The 2023 MITRE CWE Top 25 — the closed label set the model must classify into.
-#: A fixed, industry-standard taxonomy (not this benchmark's own categories), so
-#: "the model knew the bug but emitted the wrong number" is separable from "the
-#: model could not detect the bug" without teaching to the test.
-TOP25_CWES = """\
+#: The closed label set the model must classify into: exactly the CWEs OWASP
+#: BenchmarkJava v1.2 contains, verified against `expectedresults-1.2.csv`.
+#:
+#: This was the MITRE CWE Top 25, chosen as a neutral industry taxonomy so that
+#: "knew the bug, wrong number" stayed separable from "missed the bug" without
+#: teaching to the test. That backfired on this corpus: scoring matches on exact
+#: CWE (`scoring/owasp_benchmark.py`), and 7 of Benchmark's 11 CWEs are not in the
+#: Top 25 — 330 weakrand, 327 crypto, 328 hash, 501 trustbound, 614 securecookie,
+#: 90 ldapi, 643 xpathi. 638 of 1415 real vulnerabilities (45.1%) therefore carried
+#: an id the contract forbade naming, so an obedient model could not score them at
+#: all, while Semgrep — whose CWEs come from rule metadata — was under no such
+#: limit. The taxonomy was measuring itself rather than the model.
+#:
+#: Scoping it to the corpus makes every case reachable and measures *detection*
+#: rather than the model's luck at guessing from a list missing the answer. The
+#: cost is real and must be stated in the report: an 11-way closed set is easier
+#: than a 25-way one, and the scanners get no equivalent hint, so the bias now runs
+#: toward the LLM rather than against it. Report classification claims accordingly,
+#: and do not compare these numbers to published Benchmark scores from tools that
+#: were never given a label list.
+SCORED_CWES = """\
 22  Path Traversal               | 78  OS Command Injection
 79  Cross-site Scripting (XSS)   | 89  SQL Injection
-20  Improper Input Validation    | 77  Command Injection
-94  Code Injection               | 502 Deserialization of Untrusted Data
-918 Server-Side Request Forgery  | 434 Unrestricted File Upload
-352 Cross-Site Request Forgery   | 287 Improper Authentication
-306 Missing Authentication       | 862 Missing Authorization
-863 Incorrect Authorization      | 269 Improper Privilege Management
-276 Incorrect Default Permissions| 798 Hard-coded Credentials
-787 Out-of-bounds Write          | 125 Out-of-bounds Read
-119 Improper Memory Restriction  | 416 Use After Free
-476 NULL Pointer Dereference     | 190 Integer Overflow
-362 Race Condition"""
+90  LDAP Injection               | 327 Broken Crypto Algorithm
+328 Weak Hash                    | 330 Weak Randomness
+501 Trust Boundary Violation     | 614 Insecure Cookie (missing Secure flag)
+643 XPath Injection"""
 
 #: The required response shape. Documented inline so the model self-validates.
 OUTPUT_CONTRACT = (
-    "Classify each finding using ONLY a CWE id from this list (the MITRE CWE "
-    "Top 25). Do not invent or use any CWE id outside it:\n"
-    + TOP25_CWES
+    "Classify each finding using ONLY a CWE id from this list. Do not invent or "
+    "use any CWE id outside it:\n"
+    + SCORED_CWES
     + """
 
 Respond with ONLY a JSON object of this exact shape (no markdown, no prose):
 {
   "findings": [
     {
-      "cwe": <integer CWE id — MUST be one of the Top 25 ids listed above>,
+      "cwe": <integer CWE id — MUST be one of the ids listed above>,
       "vuln_type": "<the plain-English name of the bug you are reporting>",
       "diagnostic": "<one sentence: the untrusted source and the dangerous sink, in your words>",
       "file": "<source file path, or null>",
