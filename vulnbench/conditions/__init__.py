@@ -22,7 +22,8 @@ from .a1_agents import A1MultiAgent
 from .a2_ast_context import A2ASTContext
 from .a3_cfg_dfg_context import A3CFGDFGContext
 from .a5_parse import A5Parse
-from .a7_a8_fewshot_cot import A7FewShot, A8ChainOfThought
+from .a7_fewshot import A7FewShot
+from .a8_cot import A8ChainOfThought
 from .b1_semgrep import B1Semgrep
 from .b2_zap import B2Zap
 from .b3_llm import B3LLM

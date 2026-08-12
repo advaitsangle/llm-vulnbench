@@ -1,14 +1,14 @@
-"""A7 few-shot / A8 chain-of-thought conditions.
+"""A7 — few-shot labeled examples.
 
-All tests run fully offline using a message-recording MockBackend subclass
-that captures the full message list so prompt shape can be asserted directly.
+Runs fully offline via a message-recording backend, so prompt *shape* is asserted
+directly rather than inferred from counters.
 """
 
 from __future__ import annotations
 
 import json
 
-from vulnbench.conditions.a7_a8_fewshot_cot import EXAMPLES
+from vulnbench.conditions.a7_fewshot import EXAMPLES
 from vulnbench.corpus import Target, TargetKind
 from vulnbench.harness import run_one
 from vulnbench.models.base import Completion, ModelBackend, Usage
@@ -102,10 +102,6 @@ class RecordingBackend(ModelBackend):
         return Completion(text=text, usage=Usage())
 
 
-# ---------------------------------------------------------------------------
-# A7 few-shot tests
-# ---------------------------------------------------------------------------
-
 class TestA7FewShot:
     def test_fewshot_turns_precede_real_file(self, tmp_path):
         """A7 prepends example user/assistant turns before the real file's turn."""
@@ -150,27 +146,38 @@ class TestA7FewShot:
         # 1 system + 2*2 example turns + 1 real = 6
         assert len(first_call) == 6, f"expected 6 messages with shots=2, got {len(first_call)}"
 
-    def test_shots_zero_sends_no_examples(self, tmp_path):
-        """shots=0 means no example turns — same shape as B3."""
+    def test_shots_zero_is_clamped_to_one_example(self, tmp_path):
+        """A7 cannot be configured into being B3: zero examples floors at one.
+
+        A condition that can be switched off still reports under its own name, so
+        the floor is what keeps an A7 row in the scorecard an actual A7 run.
+        """
         backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        run_one(_benchmark(tmp_path), "A7", model=backend, config={"shots": 0})
+        record, _ = run_one(_benchmark(tmp_path), "A7", model=backend, config={"shots": 0})
 
         first_call = backend.calls[0]
-        assert len(first_call) == 2, (
-            f"expected 2 messages (sys+user) with shots=0, got {len(first_call)}"
+        assert len(first_call) == 4, (
+            f"expected 4 messages (sys + 1 example pair + real), got {len(first_call)}"
         )
+        assert record.trace["shots"] == 1, "trace must record the post-clamp count"
 
-    def test_fewshot_false_matches_b3_shape(self, tmp_path):
-        """fewshot=false on A7 sends a bare system+user pair matching B3."""
+    def test_trace_records_the_shots_actually_shown(self, tmp_path):
         backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        run_one(_benchmark(tmp_path), "A7", model=backend, config={"fewshot": False})
+        record, _ = run_one(_benchmark(tmp_path), "A7", model=backend, config={"shots": 2})
+        assert record.trace["shots"] == 2
 
-        first_call = backend.calls[0]
-        assert len(first_call) == 2, (
-            f"fewshot=False should produce 2 messages like B3, got {len(first_call)}"
-        )
-        assert first_call[0]["role"] == "system"
-        assert first_call[1]["role"] == "user"
+    def test_a7_declares_no_cot_knob(self, tmp_path):
+        """A7 and A8 are separate conditions; neither carries the other's knob.
+
+        Sharing a knob namespace would make `--condition A7 A8 --config {...}` set
+        both cells at once, and there would be no way to vary one independently.
+        """
+        from vulnbench.conditions import get_condition
+        a7_knobs = {k.name for k in get_condition("A7").all_knobs()}
+        a8_knobs = {k.name for k in get_condition("A8").all_knobs()}
+        assert "cot" not in a7_knobs and "fewshot" not in a7_knobs
+        assert "shots" not in a8_knobs
+        assert a7_knobs - a8_knobs == {"shots"}
 
     def test_example_count_does_not_exceed_builtin_pool(self, tmp_path):
         """shots larger than the built-in pool is silently capped."""
@@ -206,122 +213,3 @@ class TestA7FewShot:
         assert record.error is None
         assert record.metrics["tp"] == 1
 
-
-# ---------------------------------------------------------------------------
-# A8 chain-of-thought tests
-# ---------------------------------------------------------------------------
-
-class TestA8ChainOfThought:
-    def test_cot_prompt_demands_analysis_before_findings(self, tmp_path):
-        """The final user turn must mention 'analysis' before 'findings'."""
-        backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        run_one(_benchmark(tmp_path), "A8", model=backend)
-
-        user_content = backend.calls[0][-1]["content"]
-        analysis_pos = user_content.find('"analysis"')
-        findings_pos = user_content.find('"findings"')
-        assert analysis_pos != -1, "'analysis' key not found in the CoT prompt"
-        assert findings_pos != -1, "'findings' key not found in the CoT prompt"
-        assert analysis_pos < findings_pos, (
-            "'analysis' must appear before 'findings' in the prompt so the model "
-            "reasons left-to-right"
-        )
-
-    def test_cot_system_suffix_added(self, tmp_path):
-        """The system prompt for A8 includes the CoT reasoning instruction."""
-        backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        run_one(_benchmark(tmp_path), "A8", model=backend)
-
-        sys_content = backend.calls[0][0]["content"]
-        assert "reason step by step" in sys_content.lower() or "step by step" in sys_content
-
-    def test_cot_reply_parsed_and_reasoning_attached(self, tmp_path):
-        """A reply with analysis + findings: analysis lands in finding.extra."""
-        backend = RecordingBackend(replies=[_COT_FINDING_REPLY, _EMPTY_REPLY])
-        _, findings = run_one(_benchmark(tmp_path), "A8", model=backend)
-
-        assert findings, "expected at least one finding"
-        f = findings[0]
-        assert "cot_analysis" in f.extra, "CoT analysis steps not attached to finding.extra"
-        assert isinstance(f.extra["cot_analysis"], list)
-        assert len(f.extra["cot_analysis"]) > 0
-
-    def test_cot_compliance_counted_in_trace(self, tmp_path):
-        """trace must record how many files produced a valid analysis array."""
-        backend = RecordingBackend(replies=[_COT_FINDING_REPLY, _EMPTY_REPLY])
-        record, _ = run_one(_benchmark(tmp_path), "A8", model=backend)
-        assert record.error is None
-        trace = record.trace
-        assert "cot_followed_count" in trace, "cot_followed_count not in trace"
-        assert "cot_followed_pct" in trace, "cot_followed_pct not in trace"
-
-    def test_missing_analysis_still_parses(self, tmp_path):
-        """A reply with no analysis array parses normally; the trace counts the gap."""
-        backend = RecordingBackend(replies=[_FINDING_REPLY, _EMPTY_REPLY])
-        record, findings = run_one(_benchmark(tmp_path), "A8", model=backend)
-        assert record.error is None
-        # findings still parsed
-        assert isinstance(findings, list)
-        # cot_followed_count is less than files_scanned (0 out of 2)
-        trace = record.trace
-        assert trace["cot_followed_count"] == 0
-        for f in findings:
-            assert "cot_analysis" not in f.extra
-
-    def test_a8_no_fewshot_by_default(self, tmp_path):
-        """A8's default call is system + single user turn (no example pairs)."""
-        backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        run_one(_benchmark(tmp_path), "A8", model=backend)
-
-        first_call = backend.calls[0]
-        assert len(first_call) == 2, (
-            f"A8 default should have 2 messages (system+user), got {len(first_call)}"
-        )
-
-    def test_a8_finding_pinned_to_scanned_path(self, tmp_path):
-        """A finding with file=null is resolved to the scanned file."""
-        backend = RecordingBackend(replies=[_COT_FINDING_REPLY, _EMPTY_REPLY])
-        _, findings = run_one(_benchmark(tmp_path), "A8", model=backend)
-
-        assert findings
-        for f in findings:
-            assert f.location.file is not None
-            assert "BenchmarkTest" in (f.location.file or "")
-
-    def test_a8_tp_is_detected(self, tmp_path):
-        """The real CWE-89 case scores as a true positive."""
-        backend = RecordingBackend(replies=[_COT_FINDING_REPLY, _EMPTY_REPLY])
-        record, _ = run_one(_benchmark(tmp_path), "A8", model=backend)
-        assert record.error is None
-        assert record.metrics["tp"] == 1
-
-
-# ---------------------------------------------------------------------------
-# Combined few-shot + CoT
-# ---------------------------------------------------------------------------
-
-class TestCombined:
-    def test_a7_with_cot_true_adds_analysis_prefix(self, tmp_path):
-        """A7 with cot=true includes both example turns and the analysis prefix."""
-        backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        run_one(_benchmark(tmp_path), "A7", model=backend, config={"cot": True, "shots": 2})
-
-        first_call = backend.calls[0]
-        # 1 system + 2 example pairs (4 turns) + 1 real = 6
-        assert len(first_call) == 6
-
-        user_content = first_call[-1]["content"]
-        assert '"analysis"' in user_content, "CoT analysis key missing from combined prompt"
-
-    def test_a8_with_fewshot_true_includes_examples(self, tmp_path):
-        """A8 with fewshot=true prepends example turns before the real file."""
-        backend = RecordingBackend(replies=[_EMPTY_REPLY, _EMPTY_REPLY])
-        shots = 3
-        run_one(_benchmark(tmp_path), "A8", model=backend,
-                config={"fewshot": True, "shots": shots})
-
-        first_call = backend.calls[0]
-        expected_len = 1 + shots * 2 + 1
-        assert len(first_call) == expected_len
-        # Final user turn must still contain the analysis prefix.
-        assert '"analysis"' in first_call[-1]["content"]

@@ -133,7 +133,8 @@ vulnbench/
     c3_llm_rules.py     C3  LLM authors Semgrep rules, then Semgrep runs them
     a1_agents.py        A1  multi-agent scout → hunter → verifier
     a5_parse.py         A5  model cuts the file to its risky portion, then B3 evaluates it
-    a7_a8_fewshot_cot.py  A7 few-shot labeled examples · A8 chain-of-thought
+    a7_fewshot.py       A7  labeled worked examples replayed before the file
+    a8_cot.py           A8  forced step-by-step reasoning before any verdict
     llm_common.py       shared LLM prompt contract + JSON-reply parsing
   models/
     base.py             ModelBackend + Completion + Usage                    ◀ seam

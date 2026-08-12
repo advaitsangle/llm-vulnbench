@@ -206,9 +206,7 @@ is **rejected before the run starts**, so a typo like `maxfiles` fails loudly.
 | `max_file_bytes` | B3, C1, A1, A2, A3, A5, A7, A8 | 60000 | per-file read cap (the run records any truncation) |
 | `ast_max_bytes` | A2 | 60000 | truncate each file's rendered AST text past this many characters |
 | `cfg_max_bytes` | A3 | 60000 | truncate each file's rendered CFG/DFG text past this many characters |
-| `fewshot` | A7, A8 | true (A7), false (A8) | prepend labeled worked examples as conversational turns before the file |
-| `cot` | A7, A8 | false (A7), true (A8) | require step-by-step reasoning (analysis array) before any verdict |
-| `shots` | A7, A8 | 4 | how many built-in labeled examples few-shot shows (max 5) |
+| `shots` | A7 | 4 | how many built-in labeled examples to replay (1-5; A7 always shows at least one) |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
 | `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
 | `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
