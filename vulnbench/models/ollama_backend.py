@@ -31,6 +31,19 @@ DEFAULT_HOST = "http://localhost:11434"
 #: 16k costs ~3.1 GiB, leaving headroom. Raise it if the machine grows.
 DEFAULT_NUM_CTX = 16384
 
+#: Sampling seed. Fixes the RNG the sampler draws from, so the same prompt against
+#: the same model returns the same completion on a re-run. It does *not* change how
+#: the model behaves: temperature stays where it is and sampling still happens, the
+#: draw is just repeatable. That keeps a scored number checkable — a condition can be
+#: re-run to confirm a result rather than taking one sample on faith, and a gap
+#: between two conditions is attributable to the prompt rather than to the dice.
+#:
+#: 42 for no reason beyond convention, and because SAMPLE_KNOBS already uses it.
+#:
+#: Per-machine only. Identical inputs on different hardware still diverge (float
+#: addition is not associative), so this makes a run repeatable, not portable.
+DEFAULT_SEED = 42
+
 
 class OllamaBackend(ModelBackend):
     """Talks to ``/api/chat`` on a local Ollama daemon."""
@@ -42,12 +55,14 @@ class OllamaBackend(ModelBackend):
         temperature: float = 0.1,
         timeout: float = 600.0,
         num_ctx: int = DEFAULT_NUM_CTX,
+        seed: int = DEFAULT_SEED,
     ) -> None:
         self.model = model
         self.host = host.rstrip("/")
         self.temperature = temperature
         self.timeout = timeout
         self.num_ctx = num_ctx
+        self.seed = seed
         self.name = f"local:{model}"
 
     def _complete(
@@ -63,6 +78,7 @@ class OllamaBackend(ModelBackend):
             "options": {
                 "temperature": kwargs.get("temperature", self.temperature),
                 "num_ctx": kwargs.get("num_ctx", self.num_ctx),
+                "seed": kwargs.get("seed", self.seed),
             },
         }
         if tools:

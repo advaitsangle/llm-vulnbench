@@ -3,7 +3,7 @@ import json
 import pytest
 
 from vulnbench.models import MockBackend, Usage, build_backend, ollama_backend
-from vulnbench.models.ollama_backend import DEFAULT_NUM_CTX, OllamaBackend
+from vulnbench.models.ollama_backend import DEFAULT_NUM_CTX, DEFAULT_SEED, OllamaBackend
 
 
 def test_build_mock():
@@ -81,3 +81,18 @@ def test_ollama_requests_an_explicit_context_window(monkeypatch):
 def test_ollama_context_window_is_overridable(monkeypatch):
     payload = _capture_ollama_payload(monkeypatch, OllamaBackend(num_ctx=8192))
     assert payload["options"]["num_ctx"] == 8192
+
+
+def test_ollama_pins_the_sampling_seed(monkeypatch):
+    # Left unset, Ollama seeds the sampler from the clock, so re-running a scored
+    # condition draws a different completion and the number cannot be checked. The
+    # seed must be on every request, not only on the ones that pass it explicitly.
+    payload = _capture_ollama_payload(monkeypatch, OllamaBackend())
+    assert payload["options"]["seed"] == DEFAULT_SEED
+
+
+def test_ollama_seed_is_overridable(monkeypatch):
+    # Varying the seed across otherwise identical runs is how run-to-run spread
+    # gets measured, so it has to be settable per backend.
+    payload = _capture_ollama_payload(monkeypatch, OllamaBackend(seed=7))
+    assert payload["options"]["seed"] == 7

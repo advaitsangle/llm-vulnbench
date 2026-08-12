@@ -1,11 +1,21 @@
 # Final run, results
 
-100-case slice (`final-100.csv`), 61 real / 39 safe. Add your row by PR.
+100-case slice (`final-100.csv`), 61 real / 39 safe.
+
+Please run your condition with `final run/final_report_testing.py` (it pins the slice, the
+model, and the ground truth, so everyone's rows are comparable. Calling `vulnbench` yourself
+will not match). For example, to run A1 and A4 (from the repo root):
+
+    .venv/bin/python "final run/final_report_testing.py" A1 A4
+
+Keep the quotes, the folder name has a space. Cards land in `final run/scorecards/`. Add
+your row and your cards by PR.
 
 ## Before running
 
 - [ ] Right commit: `git fetch origin && git checkout cs453 && git pull`
 - [ ] Record it: `git rev-parse --short HEAD`
+- [ ] Sampling is pinned: `grep DEFAULT_SEED vulnbench/models/ollama_backend.py` prints `42`.
 - [ ] Right model: `ollama list` shows `qwen2.5-coder:14b`, ID `9ec8897f747e`, 9.0 GB
 - [ ] Record it: `ollama --version`
 - [ ] 12 GB RAM free
@@ -13,6 +23,10 @@
 - [ ] Corpus at `targets/BenchmarkJava`
 
 ## Before submitting a row
+
+Commit your `card-*.json` and `fn-*.json` from `final run/scorecards/` with your PR. The
+tables below are hand-copied, so the cards are the only auditable record of what produced
+a row.
 
 Read from `trace` in your scorecard.
 
