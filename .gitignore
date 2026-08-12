@@ -23,6 +23,3 @@ banner-preview.*
 build/
 dist/
 
-# Materialised scored slice — rebuilt by final_report_testing.py from slices/final-100.csv
-# (BenchmarkJava sources are GPL-2.0; do not vendor them into this repo)
-slices/final-100/
