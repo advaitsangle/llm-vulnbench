@@ -135,6 +135,7 @@ vulnbench/
     a5_parse.py         A5  model cuts the file to its risky portion, then B3 evaluates it
     a7_fewshot.py       A7  labeled worked examples replayed before the file
     a8_cot.py           A8  forced step-by-step reasoning before any verdict
+    a9_chained_prompts.py A9 summarize → flag candidates → verify
     llm_common.py       shared LLM prompt contract + JSON-reply parsing
   models/
     base.py             ModelBackend + Completion + Usage                    ◀ seam
