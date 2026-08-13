@@ -1,0 +1,54 @@
+[
+  {
+    "target": "/var/folders/ls/jt7khhwj5h5c4q7hv9wh5wj00000gn/T/tmp1y9g64_i",
+    "condition": "A9",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 60,
+      "fp": 39,
+      "fn": 1,
+      "tn": 0,
+      "precision": 0.6061,
+      "recall": 0.9836,
+      "f1": 0.75,
+      "fpr": 1.0,
+      "youden_j": -0.0164
+    },
+    "input_tokens": 398664,
+    "output_tokens": 61908,
+    "seconds": 6924.283826624975,
+    "model_seconds": 6923.483923171589,
+    "n_findings": 122,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-13T21:43:34+00:00",
+      "config": {}
+    },
+    "trace": {
+      "model": "local:qwen2.5-coder:14b",
+      "prompt_version": "a9-chain-v1",
+      "prompt_hashes": {
+        "summary": "c13bb3028f7853b327631d8da8d4e000101694bb36edd26798300ec24a81ec92",
+        "candidates": "d09f51b5656e5464a6a1719f10914e797c2aa7cd6c256b10e6004ec6e665f04b",
+        "verify": "d20c09aa87f4368c9f2a0bfee7ac8e1d64a137ab635e1d24979db91447a8fe50",
+        "fallback_verify": "3aaadafabad57cb7e2b1c07d9d23248fe757f5f90c6dd13bef26a947fc91df35"
+      },
+      "files_selected": 100,
+      "files_scanned": 100,
+      "files_without_candidates": 0,
+      "final_calls": 100,
+      "model_calls": 300,
+      "summary_parse_failures": 0,
+      "candidate_parse_failures": 0,
+      "final_parse_failures": 1,
+      "invalid_candidates": 0,
+      "total_candidates": 127,
+      "not_supported_rejected": 0,
+      "unexpected_findings_dropped": 0,
+      "final_findings": 122,
+      "truncated_files": 0,
+      "max_file_bytes": 60000
+    },
+    "error": null
+  }
+]

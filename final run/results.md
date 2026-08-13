@@ -42,6 +42,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | files_scanned | truncated | fallback | value |
 |------|--------------:|----------:|----------|------:|
 | B1 | n/a | n/a | | |
+| A9 | 100 | 0 | candidate_parse_failures | 0 |
 
 ## Scorecard: from the terminal summary
 
@@ -61,7 +62,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A6 | raghav | | | | | | |
 | A7 | louis | | | | | | |
 | A8 | louis | | | | | | |
-| A9 | juho | | | | | | |
+| A9 | juho | 122 | 0.6061 | 0.9836 | 0.7500 | 1.0000 | 6924.3 |
 
 ## Scorecard: only in `card-<COND>-<timestamp>.json`
 
@@ -83,14 +84,20 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A6 | | | | | | | | |
 | A7 | | | | | | | | |
 | A8 | | | | | | | | |
-| A9 | | | | | | | | |
+| A9 | 60 | 39 | 1 | 0 | -0.0164 | 398664 | 61908 | 6923.5 |
 
 ## Provenance
 
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
+| A9 | 884565a | 0.32.5 | 2026-08-13 | Apple M3 Pro, 18 GB |
 
 ## Notes
 
 Anything else you want to note so I can take into consideration before I write the final report :O
+
+- A9 scanned all 100 files with no truncation, summary parse failures, candidate parse
+  failures, or invalid candidates. One final verifier response failed to parse
+  (`final_parse_failures = 1`). All files reached the verifier (`files_without_candidates =
+  0`, `final_calls = 100`), and the run produced an FPR of 1.0.
