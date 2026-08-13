@@ -1,0 +1,70 @@
+[
+  {
+    "target": "/tmp/tmpg8zwdlbg",
+    "condition": "A2",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 60,
+      "fp": 39,
+      "fn": 1,
+      "tn": 0,
+      "precision": 0.6061,
+      "recall": 0.9836,
+      "f1": 0.75,
+      "fpr": 1.0,
+      "youden_j": -0.0164
+    },
+    "input_tokens": 488040,
+    "output_tokens": 22491,
+    "seconds": 3054.6235644149997,
+    "model_seconds": 3054.219867635001,
+    "n_findings": 106,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-13T03:55:38+00:00",
+      "config": {}
+    },
+    "trace": {
+      "files_scanned": 100,
+      "model": "local:qwen2.5-coder:14b",
+      "truncated_files": 0,
+      "ast_fallback_files": 0,
+      "ast_max_bytes": 60000
+    },
+    "error": null
+  },
+  {
+    "target": "/tmp/tmpg8zwdlbg",
+    "condition": "A3",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 54,
+      "fp": 35,
+      "fn": 7,
+      "tn": 4,
+      "precision": 0.6067,
+      "recall": 0.8852,
+      "f1": 0.72,
+      "fpr": 0.8974,
+      "youden_j": -0.0122
+    },
+    "input_tokens": 222928,
+    "output_tokens": 21683,
+    "seconds": 2236.5512442029994,
+    "model_seconds": 2236.1187026029997,
+    "n_findings": 102,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-13T04:46:32+00:00",
+      "config": {}
+    },
+    "trace": {
+      "files_scanned": 100,
+      "model": "local:qwen2.5-coder:14b",
+      "truncated_files": 0,
+      "cfg_fallback_files": 0,
+      "cfg_max_bytes": 60000
+    },
+    "error": null
+  }
+]
