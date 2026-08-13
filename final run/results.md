@@ -42,6 +42,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | files_scanned | truncated | fallback | value |
 |------|--------------:|----------:|----------|------:|
 | B1 | n/a | n/a | | |
+| A5 | 100 | 0 | files_full_fallback | 13 |
 
 ## Scorecard: from the terminal summary
 
@@ -57,7 +58,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | tengyi | | | | | | |
 | A3 | tengyi | | | | | | |
 | A4 | advait | | | | | | |
-| A5 | raghav | | | | | | |
+| A5 | raghav | 98 | 0.6104 | 0.7705 | 0.6812 | 0.7692 | 6263.1 |
 | A6 | raghav | | | | | | |
 | A7 | louis | | | | | | |
 | A8 | louis | | | | | | |
@@ -79,7 +80,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | | | | | | | | |
 | A3 | | | | | | | | |
 | A4 | | | | | | | | |
-| A5 | | | | | | | | |
+| A5 | 47 | 30 | 14 | 9 | 0.0013 | 204493 | 57442 | 6262.8 |
 | A6 | | | | | | | | |
 | A7 | | | | | | | | |
 | A8 | | | | | | | | |
@@ -90,7 +91,15 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
+| A5 | 884565a | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
 
 ## Notes
 
 Anything else you want to note so I can take into consideration before I write the final report :O
+
+- **A5 (raghav):** reducer ran on 87/100 files; `files_full_fallback` = 13 (13% forwarded the
+  whole file to the evaluator instead of a reduced chunk). `files_skipped_empty` = 0, no truncation.
+  Reducer stats: `pruned_frac` 0.585, `chunk_fidelity` 0.945.
+- A5 was run on ollama **0.20.7** (this machine, Apple M1 Pro / 16 GB), not the 0.30.10 in the B1
+  row. Seed pinned (42) and model `qwen2.5-coder:14b` (ID `9ec8897f747e`) as required. Full run
+  took ~104 min (6263 s) for the 100-case slice.
