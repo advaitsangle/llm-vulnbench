@@ -42,6 +42,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | files_scanned | truncated | fallback | value |
 |------|--------------:|----------:|----------|------:|
 | B1 | n/a | n/a | | |
+| A6 | 100 | 0 | files_judged_code_only=0 | overhead 0.332 |
 
 ## Scorecard: from the terminal summary
 
@@ -58,7 +59,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A3 | tengyi | | | | | | |
 | A4 | advait | | | | | | |
 | A5 | raghav | | | | | | |
-| A6 | raghav | | | | | | |
+| A6 | raghav | 107 | 0.6042 | 0.9508 | 0.7389 | 0.9744 | 7130.9 |
 | A7 | louis | | | | | | |
 | A8 | louis | | | | | | |
 | A9 | juho | | | | | | |
@@ -80,7 +81,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A3 | | | | | | | | |
 | A4 | | | | | | | | |
 | A5 | | | | | | | | |
-| A6 | | | | | | | | |
+| A6 | 58 | 38 | 3 | 1 | -0.0235 | 282556 | 59003 | 7130.5 |
 | A7 | | | | | | | | |
 | A8 | | | | | | | | |
 | A9 | | | | | | | | |
@@ -90,7 +91,22 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
+| A6 | 884565a | 0.20.7 | 2026-08-13 | M-series (M1 Pro), 16 GB |
 
 ## Notes
 
 Anything else you want to note so I can take into consideration before I write the final report :O
+
+**A6 (raghav):** clean run — `files_scanned`=100, `truncated_files`=0, `summaries_truncated`=0,
+`summary_parse_failures`=0, `files_judged_code_only`=0, `files_skipped_malformed`=0. So every
+one of the 100 files got a real structural summary before the judge; no file degraded to
+code-only B3. `model_calls`=200 (100 summary + 100 judge), `summary_overhead_frac`=0.332 (the
+summary added ~33% on top of the code going into the judge).
+
+- `judge_parse_failures`=3: on 3 files the judge's reply had no parsable findings object
+  (counted apart from "found nothing"). Those files still counted in the denominator — with
+  tn=1 and fpr≈0.97, A6 flags almost everything, so this doesn't dent recall but is worth a line.
+- Provenance caveat: HEAD at run time was `884565a`, but the A6 files (`vulnbench/conditions/a6_summarize.py`)
+  were still **uncommitted** on branch `A6-test-results` — not on the pinned `cs453` commit. The
+  card is the authoritative record; re-run after A6 lands on `cs453` if you want a sha that
+  reproduces exactly.

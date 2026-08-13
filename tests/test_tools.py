@@ -35,7 +35,7 @@ def test_zap_backed_conditions_declare_zap():
 
 
 def test_pure_llm_conditions_need_no_external_tool():
-    for cid in ("B3", "A1"):
+    for cid in ("B3", "A1", "A6"):
         assert REGISTRY[cid].all_tools() == ()
 
 

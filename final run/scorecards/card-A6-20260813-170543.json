@@ -1,0 +1,51 @@
+[
+  {
+    "target": "/var/folders/sr/z13lhpyx657_n93vfz6l0pjc0000gn/T/tmp9rg_tqod",
+    "condition": "A6",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 58,
+      "fp": 38,
+      "fn": 3,
+      "tn": 1,
+      "precision": 0.6042,
+      "recall": 0.9508,
+      "f1": 0.7389,
+      "fpr": 0.9744,
+      "youden_j": -0.0235
+    },
+    "input_tokens": 282556,
+    "output_tokens": 59003,
+    "seconds": 7130.880925499834,
+    "model_seconds": 7130.524366447702,
+    "n_findings": 107,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-13T21:05:43+00:00",
+      "config": {}
+    },
+    "trace": {
+      "model": "local:qwen2.5-coder:14b",
+      "prompt_version": "a6-summarize-v1",
+      "prompt_hashes": {
+        "summary": "1a69788938b8f5d119a6727e4f610f6f8400ca7b82f6c2506a6a9d682859fbde",
+        "judge": "2bd6d3259360be4d7547896507fd4f33a2554f0fa09afc8359c389382bc0be8b"
+      },
+      "summarize": true,
+      "files_selected": 100,
+      "files_scanned": 100,
+      "model_calls": 200,
+      "summary_parse_failures": 0,
+      "files_judged_code_only": 0,
+      "files_skipped_malformed": 0,
+      "judge_parse_failures": 3,
+      "truncated_files": 0,
+      "summaries_truncated": 0,
+      "source_chars": 406601,
+      "summary_chars": 135136,
+      "summary_overhead_frac": 0.332,
+      "max_file_bytes": 60000
+    },
+    "error": null
+  }
+]
