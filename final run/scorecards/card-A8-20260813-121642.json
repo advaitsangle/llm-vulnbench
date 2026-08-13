@@ -1,0 +1,37 @@
+[
+  {
+    "target": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmp5q95yp40",
+    "condition": "A8",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 57,
+      "fp": 33,
+      "fn": 4,
+      "tn": 6,
+      "precision": 0.6333,
+      "recall": 0.9344,
+      "f1": 0.755,
+      "fpr": 0.8462,
+      "youden_j": 0.0883
+    },
+    "input_tokens": 158306,
+    "output_tokens": 35978,
+    "seconds": 2761.001161583001,
+    "model_seconds": 2760.911555832019,
+    "n_findings": 100,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-13T16:16:43+00:00",
+      "config": {}
+    },
+    "trace": {
+      "files_scanned": 100,
+      "model": "local:qwen2.5-coder:14b",
+      "truncated_files": 0,
+      "max_file_bytes": 60000,
+      "cot_followed_count": 98,
+      "cot_followed_frac": 0.98
+    },
+    "error": null
+  }
+]

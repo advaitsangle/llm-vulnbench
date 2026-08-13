@@ -42,6 +42,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | files_scanned | truncated | fallback | value |
 |------|--------------:|----------:|----------|------:|
 | B1 | n/a | n/a | | |
+| A7 | 100 | 0 | shots=4 | |
+| A8 | 100 | 0 | cot_followed=98/100 | |
 
 ## Scorecard: from the terminal summary
 
@@ -59,8 +61,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A4 | advait | | | | | | |
 | A5 | raghav | | | | | | |
 | A6 | raghav | | | | | | |
-| A7 | louis | | | | | | |
-| A8 | louis | | | | | | |
+| A7 | louis | 100 | 0.6489 | 1.0000 | 0.7871 | 0.8462 | 2123.4 |
+| A8 | louis | 100 | 0.6333 | 0.9344 | 0.7550 | 0.8462 | 2761.0 |
 | A9 | juho | | | | | | |
 
 ## Scorecard: only in `card-<COND>-<timestamp>.json`
@@ -81,8 +83,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A4 | | | | | | | | |
 | A5 | | | | | | | | |
 | A6 | | | | | | | | |
-| A7 | | | | | | | | |
-| A8 | | | | | | | | |
+| A7 | 61 | 33 | 0 | 6 | 0.1538 | 345906 | 21961 | 2123.3 |
+| A8 | 57 | 33 | 4 | 6 | 0.0883 | 158306 | 35978 | 2760.9 |
 | A9 | | | | | | | | |
 
 ## Provenance
@@ -90,6 +92,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
+| A7 | 884565a | 0.9.0 | 2026-08-13 | M-series, 24 GB |
+| A8 | 884565a | 0.9.0 | 2026-08-13 | M-series, 24 GB |
 
 ## Notes
 
