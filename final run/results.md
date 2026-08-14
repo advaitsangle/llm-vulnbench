@@ -96,7 +96,6 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
-<<<<<<< HEAD
 | A2 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A3 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A5 | 884565a | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
