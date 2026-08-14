@@ -1,0 +1,49 @@
+[
+  {
+    "target": "targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode",
+    "condition": "A4",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 61,
+      "fp": 35,
+      "fn": 0,
+      "tn": 4,
+      "precision": 0.6354,
+      "recall": 1.0,
+      "f1": 0.7771,
+      "fpr": 0.8974,
+      "youden_j": 0.1026
+    },
+    "input_tokens": 390511,
+    "output_tokens": 22147,
+    "seconds": 7829.096991373997,
+    "model_seconds": 7827.676501084972,
+    "n_findings": 101,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-14T14:10:55+00:00",
+      "config": {},
+      "git_sha": "59c3734",
+      "git_dirty": true,
+      "ollama_version": "ollama version is 0.30.10"
+    },
+    "trace": {
+      "files_scanned": 100,
+      "model": "local:qwen2.5-coder:14b",
+      "truncated_files": 0,
+      "max_file_bytes": 60000,
+      "retriever": "embedding",
+      "k": 5,
+      "top1_leak_matches": 96,
+      "leak_annotated_files": 100,
+      "top1_leak_match_frac": 0.96,
+      "findings_echoing_top1": 92,
+      "findings_echoing_top1_frac": 0.9125,
+      "driver": "run_incremental.py (one run_one call per test case)",
+      "cases_scored": 100,
+      "cases_total": 100
+    },
+    "partial": false,
+    "error": null
+  }
+]

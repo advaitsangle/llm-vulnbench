@@ -42,6 +42,12 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | files_scanned | truncated | fallback | value |
 |------|--------------:|----------:|----------|------:|
 | B1 | n/a | n/a | | |
+| B2 | n/a | n/a | seeded_requests | 100 |
+| B3 | 100 | 0 | | |
+| C1 | 100 | 0 | semgrep_raw_findings=73, files_reviewed=59 | |
+| C2 | n/a | n/a | endpoints_reviewed | 100 |
+| A1 | 100 | 0 | files_skipped_by_scout | 0 |
+| A4 | 100 | 0 | top1_leak_match_frac | 0.96 |
 | A2 | 100 | 0 | ast_fallback_files | 0 |
 | A3 | 100 | 0 | cfg_fallback_files | 0 |
 | A5 | 100 | 0 | files_full_fallback | 13 |
@@ -54,16 +60,16 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 
 | Cond | Who | Findings | Prec | Recall | F1 | FPR | Latency |
 |------|-----|---------:|-----:|-------:|-----:|----:|--------:|
-| B1 | advait | 73 | 0.7091 | 0.6393 | 0.6724 | 0.4103 | 4.2 |
-| B2 | advait | | | | | | |
-| B3 | advait | | | | | | |
-| C1 | advait | | | | | | |
-| C2 | advait | | | | | | |
-| C3 | advait | | | | | | |
-| A1 | advait | | | | | | |
+| B1 | advait | 73 | 0.7091 | 0.6393 | 0.6724 | 0.4103 | 2.6 |
+| B2 | advait | 944 | 1.0000 | 0.2951 | 0.4557 | 0.0000 | 82.4 |
+| B3 | advait | 93 | 0.6279 | 0.8852 | 0.7347 | 0.8205 | 5611.1 |
+| C1 | advait | 67 | 0.7193 | 0.6721 | 0.6949 | 0.4103 | 3836.7 |
+| C2 | advait | 229 | 0.5897 | 0.3770 | 0.4600 | 0.4103 | 9145.5 |
+| C3 | — | dropped | | | | | |
+| A1 | advait | 97 | 0.6421 | 1.0000 | 0.7821 | 0.8718 | 12615.9 |
 | A2 | tengyi | 106 | 0.6061 | 0.9836 | 0.75 | 1.0 | 3054.6 |
 | A3 | tengyi | 102 | 0.6067 | 0.8852 | 0.72 | 0.8974 | 2236.6 |
-| A4 | advait | | | | | | |
+| A4 | advait | 101 | 0.6354 | 1.0000 | 0.7771 | 0.8974 | 7829.1 |
 | A5 | raghav | 98 | 0.6104 | 0.7705 | 0.6812 | 0.7692 | 6263.1 |
 | A6 | raghav | 107 | 0.6042 | 0.9508 | 0.7389 | 0.9744 | 7130.9 |
 | A7 | louis | 100 | 0.6489 | 1.0000 | 0.7871 | 0.8462 | 2123.4 |
@@ -77,15 +83,15 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | TP | FP | FN | TN | Youden J | input_tokens | output_tokens | model_seconds |
 |------|---:|---:|---:|---:|---------:|-------------:|--------------:|--------------:|
 | B1 | 39 | 16 | 22 | 23 | 0.2291 | 0 | 0 | 0.0 |
-| B2 | | | | | | | | |
-| B3 | | | | | | | | |
-| C1 | | | | | | | | |
-| C2 | | | | | | | | |
-| C3 | | | | | | | | |
-| A1 | | | | | | | | |
+| B2 | 18 | 0 | 43 | 39 | 0.2951 | 0 | 0 | 0.0 |
+| B3 | 54 | 32 | 7 | 7 | 0.0647 | 131606 | 22651 | 5611.0 |
+| C1 | 41 | 16 | 20 | 23 | 0.2619 | 83517 | 14117 | 3520.2 |
+| C2 | 23 | 16 | 38 | 23 | -0.0332 | 141806 | 48034 | 9145.4 |
+| C3 | — | — | — | — | dropped | — | — | — |
+| A1 | 61 | 34 | 0 | 5 | 0.1282 | 308433 | 49075 | 12615.4 |
 | A2 | 60 | 39 | 1 | 0 | -0.0164 | 488040 | 22491 | 3054.2 |
 | A3 | 54 | 35 | 7 | 4 | -0.0122 | 222928 | 21683 | 2236.1 |
-| A4 | | | | | | | | |
+| A4 | 61 | 35 | 0 | 4 | 0.1026 | 390511 | 22147 | 7827.7 |
 | A5 | 47 | 30 | 14 | 9 | 0.0013 | 204493 | 57442 | 6262.8 |
 | A6 | 58 | 38 | 3 | 1 | -0.0235 | 282556 | 59003 | 7130.5 |
 | A7 | 61 | 33 | 0 | 6 | 0.1538 | 345906 | 21961 | 2123.3 |
@@ -96,7 +102,13 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
-| B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
+| B1 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| B2 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| B3 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| C1 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| C2 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| A1 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| A4 | 59c3734 | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
 | A2 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A3 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A5 | 884565a | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
@@ -108,6 +120,27 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 ## Notes
 
 Anything else you want to note so I can take into consideration before I write the final report :O
+
+**advait's rows (B1, B2, B3, C1, C2, A1, A4).**
+
+- **A4 leak metrics:** `top1_leak_match_frac` = 0.96 (the retriever's top hit matched the category
+  the corpus leaks, 96 of 100 files), `findings_echoing_top1_frac` = 0.9125 (91% of findings repeated
+  that top-ranked CWE). A4's recall of 1.000 should be read against these.
+- **B3, C1, C2, A1, A4 ran one test case at a time** via `run_incremental.py` (cards say so in
+  `trace.driver`). Per-case output was verified identical to a whole-slice run before the sweep.
+  A1 and A4 ran in chunks of 10 because A1's scout rates 10 files per prompt and A4 evicts its
+  embedding model before the judge loads.
+- **C2's 9145 s covers the 100 scoreable endpoints only.** 396 of 959 alerts sit on category
+  directories (`/benchmark/cmdi-00`) that name no test case; findings there cannot score, so they were
+  not triaged.
+- **C3 dropped.** LLM-authored Semgrep rules scored F1 0.00 in earlier runs: valid Semgrep, but they
+  only matched `.executeQuery` and required the taint source inside the sink call, which holds in
+  0 of 80 held-out files. Measured-not-viable, not untested.
+- B1's latency is 2.6 s, from a re-run today that produced the card behind this row; metrics are
+  unchanged from the original 4.2 s run.
+- **`crawler-100.xml` and `zap-alerts-100.json` are committed next to the cards** because neither
+  DAST row reproduces without them: ZAP active scans are timing-dependent, so the seed requests and
+  the exact 959-alert scan C2 triaged (B2's own card records 944) cannot be regenerated.
 
 **A2/A3** Both look decent on F1 (0.75 / 0.72) but Youden J is negative for both. A2 has `tn=0` — it flagged every single one of the safe files as vulnerable. A3 is barely better (`tn=4`).
 

@@ -1,0 +1,44 @@
+[
+  {
+    "target": "final-100",
+    "condition": "B2",
+    "model": null,
+    "metrics": {
+      "tp": 18,
+      "fp": 0,
+      "fn": 43,
+      "tn": 39,
+      "precision": 1.0,
+      "recall": 0.2951,
+      "f1": 0.4557,
+      "fpr": 0.0,
+      "youden_j": 0.2951
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "seconds": 82.39484699999593,
+    "model_seconds": 0.0,
+    "n_findings": 944,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-14T19:03:10+00:00",
+      "config": {
+        "zap_url": "http://127.0.0.1:8090",
+        "zap_seed_crawler": "final run/crawler-100.xml",
+        "zap_max_wait": 7200
+      }
+    },
+    "trace": {
+      "zap_url": "http://127.0.0.1:8090",
+      "base_url": "https://benchmark:8443/benchmark/",
+      "disabled_scanners": [
+        "40026"
+      ],
+      "seeded_requests": 100,
+      "ascan_id": "0",
+      "alert_count": 944,
+      "zap_version": "2.17.0"
+    },
+    "error": null
+  }
+]

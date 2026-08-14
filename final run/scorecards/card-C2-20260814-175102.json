@@ -1,0 +1,46 @@
+[
+  {
+    "target": "targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode",
+    "condition": "C2",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 23,
+      "fp": 16,
+      "fn": 38,
+      "tn": 23,
+      "precision": 0.5897,
+      "recall": 0.377,
+      "f1": 0.46,
+      "fpr": 0.4103,
+      "youden_j": -0.0332
+    },
+    "input_tokens": 141806,
+    "output_tokens": 48034,
+    "seconds": 9145.485379340997,
+    "model_seconds": 9145.383821169007,
+    "n_findings": 229,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-14T21:51:02+00:00",
+      "config": {},
+      "git_sha": "59c3734",
+      "git_dirty": true,
+      "ollama_version": "ollama version is 0.30.10"
+    },
+    "trace": {
+      "scan_in": "final run/zap-alerts-100.json",
+      "loaded_findings": 563,
+      "model": "local:qwen2.5-coder:14b",
+      "endpoints_reviewed": 100,
+      "phase": "triage",
+      "driver": "run_incremental.py (one run_one call per test case)",
+      "cases_scored": 100,
+      "cases_total": 100,
+      "alerts_loaded": 959,
+      "alerts_unmapped_to_case": 396,
+      "cases_with_alerts": 100
+    },
+    "partial": false,
+    "error": null
+  }
+]

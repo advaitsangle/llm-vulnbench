@@ -1,0 +1,48 @@
+[
+  {
+    "target": "targets/BenchmarkJava/src/main/java/org/owasp/benchmark/testcode",
+    "condition": "A1",
+    "model": "local:qwen2.5-coder:14b",
+    "metrics": {
+      "tp": 61,
+      "fp": 34,
+      "fn": 0,
+      "tn": 5,
+      "precision": 0.6421,
+      "recall": 1.0,
+      "f1": 0.7821,
+      "fpr": 0.8718,
+      "youden_j": 0.1282
+    },
+    "input_tokens": 308433,
+    "output_tokens": 49075,
+    "seconds": 12615.865494043006,
+    "model_seconds": 12615.385072128935,
+    "n_findings": 97,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-14T17:41:12+00:00",
+      "config": {},
+      "git_sha": "59c3734",
+      "git_dirty": true,
+      "ollama_version": "ollama version is 0.30.10"
+    },
+    "trace": {
+      "model": "local:qwen2.5-coder:14b",
+      "files_surveyed": 100,
+      "files_deep_dived": 100,
+      "files_skipped_by_scout": 0,
+      "candidates": 101,
+      "verified_findings": 97,
+      "rejected_by_verifier": 4,
+      "triage": true,
+      "verify": true,
+      "min_risk": 0.0,
+      "driver": "run_incremental.py (one run_one call per test case)",
+      "cases_scored": 100,
+      "cases_total": 100
+    },
+    "partial": false,
+    "error": null
+  }
+]

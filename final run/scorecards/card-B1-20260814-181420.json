@@ -1,0 +1,41 @@
+[
+  {
+    "target": "final-100",
+    "condition": "B1",
+    "model": null,
+    "metrics": {
+      "tp": 39,
+      "fp": 16,
+      "fn": 22,
+      "tn": 23,
+      "precision": 0.7091,
+      "recall": 0.6393,
+      "f1": 0.6724,
+      "fpr": 0.4103,
+      "youden_j": 0.2291
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "seconds": 2.5533565830000953,
+    "model_seconds": 0.0,
+    "n_findings": 73,
+    "provenance": {
+      "vulnbench_version": "0.1.0",
+      "timestamp_utc": "2026-08-14T22:14:20+00:00",
+      "config": {}
+    },
+    "trace": {
+      "command": [
+        "semgrep",
+        "--config",
+        "p/owasp-top-ten",
+        "--json",
+        "--quiet",
+        "~/.vulnbench/final-100"
+      ],
+      "ruleset": "p/owasp-top-ten",
+      "semgrep_version": "1.168.0"
+    },
+    "error": null
+  }
+]
