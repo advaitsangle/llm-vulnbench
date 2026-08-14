@@ -23,3 +23,9 @@ banner-preview.*
 build/
 dist/
 .vscode/
+
+# Local final-run drivers and derived ground truth. gt-100.csv is final-100.csv
+# with the header swapped for a comment, so the tracked file is the source.
+final run/run_incremental.py
+final run/run_dast.sh
+final run/gt-100.csv
