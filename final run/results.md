@@ -42,6 +42,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | files_scanned | truncated | fallback | value |
 |------|--------------:|----------:|----------|------:|
 | B1 | n/a | n/a | | |
+| A2 | 100 | 0 | ast_fallback_files | 0 |
+| A3 | 100 | 0 | cfg_fallback_files | 0 |
 
 ## Scorecard: from the terminal summary
 
@@ -54,8 +56,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | C2 | advait | | | | | | |
 | C3 | advait | | | | | | |
 | A1 | advait | | | | | | |
-| A2 | tengyi | | | | | | |
-| A3 | tengyi | | | | | | |
+| A2 | tengyi | 106 | 0.6061 | 0.9836 | 0.75 | 1.0 | 3054.6 |
+| A3 | tengyi | 102 | 0.6067 | 0.8852 | 0.72 | 0.8974 | 2236.6 |
 | A4 | advait | | | | | | |
 | A5 | raghav | | | | | | |
 | A6 | raghav | | | | | | |
@@ -76,8 +78,8 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | C2 | | | | | | | | |
 | C3 | | | | | | | | |
 | A1 | | | | | | | | |
-| A2 | | | | | | | | |
-| A3 | | | | | | | | |
+| A2 | 60 | 39 | 1 | 0 | -0.0164 | 488040 | 22491 | 3054.2 |
+| A3 | 54 | 35 | 7 | 4 | -0.0122 | 222928 | 21683 | 2236.1 |
 | A4 | | | | | | | | |
 | A5 | | | | | | | | |
 | A6 | | | | | | | | |
@@ -90,7 +92,11 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
+| A2 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
+| A3 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 
 ## Notes
 
 Anything else you want to note so I can take into consideration before I write the final report :O
+
+**A2/A3** Both look decent on F1 (0.75 / 0.72) but Youden J is negative for both. A2 has `tn=0` — it flagged every single one of the safe files as vulnerable. A3 is barely better (`tn=4`).
