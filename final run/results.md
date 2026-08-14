@@ -45,6 +45,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | 100 | 0 | ast_fallback_files | 0 |
 | A3 | 100 | 0 | cfg_fallback_files | 0 |
 | A5 | 100 | 0 | files_full_fallback | 13 |
+| A6 | 100 | 0 | files_judged_code_only=0 | overhead 0.332 |
 | A7 | 100 | 0 | shots=4 | |
 | A8 | 100 | 0 | cot_followed=98/100 | |
 | A9 | 100 | 0 | candidate_parse_failures | 0 |
@@ -64,7 +65,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A3 | tengyi | 102 | 0.6067 | 0.8852 | 0.72 | 0.8974 | 2236.6 |
 | A4 | advait | | | | | | |
 | A5 | raghav | 98 | 0.6104 | 0.7705 | 0.6812 | 0.7692 | 6263.1 |
-| A6 | raghav | | | | | | |
+| A6 | raghav | 107 | 0.6042 | 0.9508 | 0.7389 | 0.9744 | 7130.9 |
 | A7 | louis | 100 | 0.6489 | 1.0000 | 0.7871 | 0.8462 | 2123.4 |
 | A8 | louis | 100 | 0.6333 | 0.9344 | 0.7550 | 0.8462 | 2761.0 |
 | A9 | juho | 122 | 0.6061 | 0.9836 | 0.7500 | 1.0000 | 6924.3 |
@@ -86,7 +87,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A3 | 54 | 35 | 7 | 4 | -0.0122 | 222928 | 21683 | 2236.1 |
 | A4 | | | | | | | | |
 | A5 | 47 | 30 | 14 | 9 | 0.0013 | 204493 | 57442 | 6262.8 |
-| A6 | | | | | | | | |
+| A6 | 58 | 38 | 3 | 1 | -0.0235 | 282556 | 59003 | 7130.5 |
 | A7 | 61 | 33 | 0 | 6 | 0.1538 | 345906 | 21961 | 2123.3 |
 | A8 | 57 | 33 | 4 | 6 | 0.0883 | 158306 | 35978 | 2760.9 |
 | A9 | 60 | 39 | 1 | 0 | -0.0164 | 398664 | 61908 | 6923.5 |
@@ -99,6 +100,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A3 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A5 | 884565a | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
+| A6 | 884565a | 0.20.7 | 2026-08-13 | M-series (M1 Pro), 16 GB |
 | A7 | 884565a | 0.9.0 | 2026-08-13 | M-series, 24 GB |
 | A8 | 884565a | 0.9.0 | 2026-08-13 | M-series, 24 GB |
 | A9 | 884565a | 0.32.5 | 2026-08-13 | Apple M3 Pro, 18 GB |
@@ -119,3 +121,17 @@ Anything else you want to note so I can take into consideration before I write t
   failures, or invalid candidates. One final verifier response failed to parse
   (`final_parse_failures = 1`). All files reached the verifier (`files_without_candidates =
   0`, `final_calls = 100`), and the run produced an FPR of 1.0.
+
+**A6 (raghav):** clean run — `files_scanned`=100, `truncated_files`=0, `summaries_truncated`=0,
+`summary_parse_failures`=0, `files_judged_code_only`=0, `files_skipped_malformed`=0. So every
+one of the 100 files got a real structural summary before the judge; no file degraded to
+code-only B3. `model_calls`=200 (100 summary + 100 judge), `summary_overhead_frac`=0.332 (the
+summary added ~33% on top of the code going into the judge).
+
+- `judge_parse_failures`=3: on 3 files the judge's reply had no parsable findings object
+  (counted apart from "found nothing"). Those files still counted in the denominator — with
+  tn=1 and fpr≈0.97, A6 flags almost everything, so this doesn't dent recall but is worth a line.
+- Provenance caveat: HEAD at run time was `884565a`, but the A6 files (`vulnbench/conditions/a6_summarize.py`)
+  were still **uncommitted** on branch `A6-test-results` — not on the pinned `cs453` commit. The
+  card is the authoritative record; re-run after A6 lands on `cs453` if you want a sha that
+  reproduces exactly.

@@ -12,6 +12,7 @@ Registry maps the ids used in the proposal to classes:
     A2  AST-augmented context        (structural context)   [implemented]
     A3  CFG/DFG-augmented context    (structural context)   [implemented]
     A5  Risky-portion extraction     (reduce, then B3)      [implemented]
+    A6  summarize then judge         (summary + B3)         [implemented]
     A7  Few-shot labeled examples                           [implemented]
     A8  Chain-of-thought (reason before verdict)            [implemented]
     A9  Chained prompts              (summarize/flag/verify) [implemented]
@@ -23,6 +24,7 @@ from .a1_agents import A1MultiAgent
 from .a2_ast_context import A2ASTContext
 from .a3_cfg_dfg_context import A3CFGDFGContext
 from .a5_parse import A5Parse
+from .a6_summarize import A6Summarize
 from .a7_fewshot import A7FewShot
 from .a8_cot import A8ChainOfThought
 from .a9_chained_prompts import A9ChainedPrompts
@@ -45,6 +47,7 @@ REGISTRY: dict[str, type[Condition]] = {
     "A2": A2ASTContext,
     "A3": A3CFGDFGContext,
     "A5": A5Parse,
+    "A6": A6Summarize,
     "A7": A7FewShot,
     "A8": A8ChainOfThought,
     "A9": A9ChainedPrompts,
