@@ -45,6 +45,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | 100 | 0 | ast_fallback_files | 0 |
 | A3 | 100 | 0 | cfg_fallback_files | 0 |
 | A5 | 100 | 0 | files_full_fallback | 13 |
+| A9 | 100 | 0 | candidate_parse_failures | 0 |
 
 ## Scorecard: from the terminal summary
 
@@ -64,7 +65,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A6 | raghav | | | | | | |
 | A7 | louis | | | | | | |
 | A8 | louis | | | | | | |
-| A9 | juho | | | | | | |
+| A9 | juho | 122 | 0.6061 | 0.9836 | 0.7500 | 1.0000 | 6924.3 |
 
 ## Scorecard: only in `card-<COND>-<timestamp>.json`
 
@@ -86,7 +87,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A6 | | | | | | | | |
 | A7 | | | | | | | | |
 | A8 | | | | | | | | |
-| A9 | | | | | | | | |
+| A9 | 60 | 39 | 1 | 0 | -0.0164 | 398664 | 61908 | 6923.5 |
 
 ## Provenance
 
@@ -96,6 +97,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A3 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A5 | 884565a | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
+| A9 | 884565a | 0.32.5 | 2026-08-13 | Apple M3 Pro, 18 GB |
 
 ## Notes
 
@@ -109,3 +111,7 @@ Anything else you want to note so I can take into consideration before I write t
 - A5 was run on ollama **0.20.7** (this machine, Apple M1 Pro / 16 GB), not the 0.30.10 in the B1
   row. Seed pinned (42) and model `qwen2.5-coder:14b` (ID `9ec8897f747e`) as required. Full run
   took ~104 min (6263 s) for the 100-case slice.
+- A9 scanned all 100 files with no truncation, summary parse failures, candidate parse
+  failures, or invalid candidates. One final verifier response failed to parse
+  (`final_parse_failures = 1`). All files reached the verifier (`files_without_candidates =
+  0`, `final_calls = 100`), and the run produced an FPR of 1.0.

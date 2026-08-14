@@ -22,4 +22,4 @@ banner-preview.*
 # Packaging build artifacts
 build/
 dist/
-
+.vscode/
