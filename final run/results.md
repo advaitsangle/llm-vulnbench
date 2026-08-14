@@ -44,6 +44,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | B1 | n/a | n/a | | |
 | A2 | 100 | 0 | ast_fallback_files | 0 |
 | A3 | 100 | 0 | cfg_fallback_files | 0 |
+| A5 | 100 | 0 | files_full_fallback | 13 |
 
 ## Scorecard: from the terminal summary
 
@@ -59,7 +60,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | tengyi | 106 | 0.6061 | 0.9836 | 0.75 | 1.0 | 3054.6 |
 | A3 | tengyi | 102 | 0.6067 | 0.8852 | 0.72 | 0.8974 | 2236.6 |
 | A4 | advait | | | | | | |
-| A5 | raghav | | | | | | |
+| A5 | raghav | 98 | 0.6104 | 0.7705 | 0.6812 | 0.7692 | 6263.1 |
 | A6 | raghav | | | | | | |
 | A7 | louis | | | | | | |
 | A8 | louis | | | | | | |
@@ -81,7 +82,7 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | A2 | 60 | 39 | 1 | 0 | -0.0164 | 488040 | 22491 | 3054.2 |
 | A3 | 54 | 35 | 7 | 4 | -0.0122 | 222928 | 21683 | 2236.1 |
 | A4 | | | | | | | | |
-| A5 | | | | | | | | |
+| A5 | 47 | 30 | 14 | 9 | 0.0013 | 204493 | 57442 | 6262.8 |
 | A6 | | | | | | | | |
 | A7 | | | | | | | | |
 | A8 | | | | | | | | |
@@ -94,9 +95,17 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 | B1 | 7dccfc2 | 0.30.10 | 2026-08-12 | M-series, 16 GB |
 | A2 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
 | A3 | 884565a | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
+| A5 | 884565a | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
 
 ## Notes
 
 Anything else you want to note so I can take into consideration before I write the final report :O
 
 **A2/A3** Both look decent on F1 (0.75 / 0.72) but Youden J is negative for both. A2 has `tn=0` — it flagged every single one of the safe files as vulnerable. A3 is barely better (`tn=4`).
+
+- **A5 (raghav):** reducer ran on 87/100 files; `files_full_fallback` = 13 (13% forwarded the
+  whole file to the evaluator instead of a reduced chunk). `files_skipped_empty` = 0, no truncation.
+  Reducer stats: `pruned_frac` 0.585, `chunk_fidelity` 0.945.
+- A5 was run on ollama **0.20.7** (this machine, Apple M1 Pro / 16 GB), not the 0.30.10 in the B1
+  row. Seed pinned (42) and model `qwen2.5-coder:14b` (ID `9ec8897f747e`) as required. Full run
+  took ~104 min (6263 s) for the 100-case slice.
