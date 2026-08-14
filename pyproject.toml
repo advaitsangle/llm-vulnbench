@@ -62,7 +62,9 @@ where = ["."]
 include = ["vulnbench*"]
 
 [tool.setuptools.package-data]
-vulnbench = ["targets.toml"]
+# cwe_kb.json is A4's retrieval corpus, extracted from the MITRE CWE catalog by
+# tools/build_cwe_kb.py; shipping it keeps the condition offline at run time.
+vulnbench = ["targets.toml", "data/cwe_kb.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

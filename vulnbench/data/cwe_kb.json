@@ -1,0 +1,156 @@
+{
+  "_source": {
+    "catalog": "MITRE CWE",
+    "url": "https://cwe.mitre.org/data/xml/cwec_latest.xml.zip",
+    "version": "4.20",
+    "catalog_date": "2026-04-30",
+    "retrieved": "2026-08-14",
+    "generated_by": "tools/build_cwe_kb.py",
+    "notice": "CWE is a trademark of The MITRE Corporation. Prose reproduced from the CWE catalog, trimmed to length; see tools/build_cwe_kb.py."
+  },
+  "entries": [
+    {
+      "cwe": 22,
+      "name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')",
+      "description": "The product uses external input to construct a pathname that is intended to identify a file or directory that is located underneath a restricted parent directory, but the product does not properly neutralize special elements within the pathname that can cause the pathname to resolve to a location that is outside of the restricted directory. Many file operations are intended to take place within a restricted directory. By using special elements such as \"..\" and \"/\" separators, attackers can escape outside of the restricted location to access files or directories that are elsewhere on the system.",
+      "mitigations": [
+        "Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does.",
+        "Inputs should be decoded and canonicalized to the application's current internal representation before being validated (CWE-180). Make sure that the application does not decode the same input twice (CWE-174).",
+        "Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid [REF-1482]."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "String filename = System.getProperty(\"com.domain.application.dictionaryFile\");\nFile dictionaryFile = new File(filename);"
+      }
+    },
+    {
+      "cwe": 78,
+      "name": "Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')",
+      "description": "The product constructs all or part of an OS command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended OS command when it is sent to a downstream component. This weakness can lead to a vulnerability in environments in which the attacker does not have direct access to the operating system, such as in web applications. Alternately, if the weakness occurs in a privileged program, it could allow the attacker to specify commands that normally would not be accessible, or to call alternate commands with privileges that the attacker does not have.",
+      "mitigations": [
+        "If available, use structured mechanisms that automatically enforce the separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this capability at every point where output is…",
+        "While it is risky to use dynamically-generated query strings, code, or commands that mix control and data together, sometimes it may be unavoidable. Properly quote arguments and escape any special characters within those arguments.",
+        "Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "String script = System.getProperty(\"SCRIPTNAME\");\nif (script != null)System.exec(script);"
+      }
+    },
+    {
+      "cwe": 79,
+      "name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')",
+      "description": "The product does not neutralize or incorrectly neutralizes user-controllable input before it is placed in output that is used as a web page that is served to other users. There are many variants of cross-site scripting, characterized by a variety of terms or involving different attack topologies. However, they all indicate the same fundamental weakness: improper neutralization of dangerous input between the adversary and a victim.",
+      "mitigations": [
+        "If available, use structured mechanisms that automatically enforce the separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this capability at every point where output is…",
+        "Use and specify an output encoding that can be handled by the downstream component that is reading the output. Common encodings include ISO-8859-1, UTF-7, and UTF-8. When an encoding is not specified, a downstream component may choose a different encoding, either by assuming a default encoding or au…",
+        "Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "public String removeScriptTags(String input, String mask) {\nreturn input.replaceAll(\"script\", mask);}"
+      }
+    },
+    {
+      "cwe": 89,
+      "name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')",
+      "description": "The product constructs all or part of an SQL command using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended SQL command when it is sent to a downstream component. Without sufficient removal or quoting of SQL syntax in user-controllable inputs, the generated SQL query can cause those inputs to be interpreted as SQL instead of ordinary user data.",
+      "mitigations": [
+        "If available, use structured mechanisms that automatically enforce the separation between data and code. These mechanisms may be able to provide the relevant quoting, encoding, and validation automatically, instead of relying on the developer to provide this capability at every point where output is…",
+        "While it is risky to use dynamically-generated query strings, code, or commands that mix control and data together, sometimes it may be unavoidable. Properly quote arguments and escape any special characters within those arguments.",
+        "Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does."
+      ],
+      "example": {
+        "language": "C#",
+        "code": "...\nstring userName = ctx.getAuthenticatedUserName();\nstring query = \"SELECT * FROM items WHERE owner = '\" + userName + \"' AND itemname = '\" + ItemName.Text + \"'\";\nsda = new SqlDataAdapter(query, conn);\nDataTable dt = new DataTable();\nsda.Fill(dt);\n..."
+      }
+    },
+    {
+      "cwe": 90,
+      "name": "Improper Neutralization of Special Elements used in an LDAP Query ('LDAP Injection')",
+      "description": "The product constructs all or part of an LDAP query using externally-influenced input from an upstream component, but it does not neutralize or incorrectly neutralizes special elements that could modify the intended LDAP query when it is sent to a downstream component.",
+      "mitigations": [
+        "Assume all input is malicious. Use an \"accept known good\" input validation strategy, i.e., use a list of acceptable inputs that strictly conform to specifications. Reject any input that does not strictly conform to specifications, or transform it into something that does."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "context = new InitialDirContext(env);\nString searchFilter = \"StreetAddress=\" + address;\nNamingEnumeration answer = context.search(searchBase, searchFilter, searchCtls);"
+      }
+    },
+    {
+      "cwe": 327,
+      "name": "Use of a Broken or Risky Cryptographic Algorithm",
+      "description": "The product uses a broken or risky cryptographic algorithm or protocol. Cryptographic algorithms are the methods by which data is scrambled to prevent observation or influence by unauthorized actors. Insecure cryptography can be exploited to expose sensitive information, modify data in unexpected ways, spoof identities of other users or devices, or other impacts. It is very difficult to produce a secure algorithm, and even high-profile algorithms by accomplished cryptographic experts have been broken. Well-known techniques exist to break or weaken various kinds of cryptography.",
+      "mitigations": [
+        "When there is a need to store or transmit sensitive data, use strong, up-to-date cryptographic algorithms to encrypt that data. Select a well-vetted algorithm that is currently considered to be strong by experts in the field, and use well-tested implementations.",
+        "Use a vetted library or framework that does not allow this weakness to occur or provides constructs that make this weakness easier to avoid [REF-1482]. Industry-standard implementations will save development time and may be more likely to avoid errors that can occur during implementation of cryptogr…",
+        "When using industry-approved techniques, use them correctly. Don't cut corners by skipping resource-intensive steps (CWE-325). These steps are often essential for preventing common attacks."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "Cipher des=Cipher.getInstance(\"DES...\");\ndes.initEncrypt(key2);"
+      }
+    },
+    {
+      "cwe": 328,
+      "name": "Use of Weak Hash",
+      "description": "The product uses an algorithm that produces a digest (output value) that does not meet security expectations for a hash function that allows an adversary to reasonably determine the original input (preimage attack), find another input that can produce the same hash (2nd preimage attack), or find multiple inputs that evaluate to the same hash (birthday attack). A hash function is defined as an algorithm that maps arbitrarily sized data into a fixed-sized digest (output) such that the following properties hold: The algorithm is not invertible (also called \"one-way\" or \"not reversible\") The algorithm is deterministic; the same input produces the same digest every time Building on this definitio…",
+      "mitigations": [
+        "Use an adaptive hash function that can be configured to change the amount of computational effort needed to compute the hash, such as the number of iterations (\"stretching\") or the amount of memory required. Some hash functions perform salting automatically."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "String plainText = new String(plainTextIn);\nMessageDigest encer = MessageDigest.getInstance(\"SHA\");\nencer.update(plainTextIn);\nbyte[] digest = password.digest();\n//Login if hash matches stored hash\nif (equal(digest,secret_password())) {login_user();}"
+      }
+    },
+    {
+      "cwe": 330,
+      "name": "Use of Insufficiently Random Values",
+      "description": "The product uses insufficiently random numbers or values in a security context that depends on unpredictable numbers.",
+      "mitigations": [
+        "Use products or modules that conform to FIPS 140-2 [REF-267] to avoid obvious entropy problems. Consult FIPS 140-2 Annex C (\"Approved Random Number Generators\").",
+        "Consider a PRNG that re-seeds itself as needed from high quality pseudo-random output sources, such as hardware devices.",
+        "Use a well-vetted algorithm that is currently considered to be strong by experts in the field, and select well-tested implementations with adequate length seeds. In general, if a pseudo-random number generator is not advertised as being cryptographically secure, then it is probably a statistical PRN…"
+      ],
+      "example": {
+        "language": "Java",
+        "code": "String GenerateReceiptURL(String baseUrl) {\nRandom ranGen = new Random();}\nranGen.setSeed((new Date()).getTime());\nreturn(baseUrl + ranGen.nextInt(400000000) + \".html\");"
+      }
+    },
+    {
+      "cwe": 501,
+      "name": "Trust Boundary Violation",
+      "description": "The product mixes trusted and untrusted data in the same data structure or structured message. A trust boundary can be thought of as line drawn through a program. On one side of the line, data is untrusted. On the other side of the line, data is assumed to be trustworthy. The purpose of validation logic is to allow data to safely cross the trust boundary - to move from untrusted to trusted. A trust boundary violation occurs when a program blurs the line between what is trusted and what is untrusted. By combining trusted and untrusted data in the same data structure, it becomes easier for programmers to mistakenly trust unvalidated data.",
+      "mitigations": [],
+      "example": {
+        "language": "Java",
+        "code": "usrname = request.getParameter(\"usrname\");\nif (session.getAttribute(ATTR_USR) == null) {session.setAttribute(ATTR_USR, usrname);}"
+      }
+    },
+    {
+      "cwe": 614,
+      "name": "Sensitive Cookie in HTTPS Session Without 'Secure' Attribute",
+      "description": "The Secure attribute for sensitive cookies in HTTPS sessions is not set.",
+      "mitigations": [
+        "Always set the secure attribute when the cookie should be sent via HTTPS only."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "Cookie c = new Cookie(ACCOUNT_ID, acctID);\nresponse.addCookie(c);"
+      }
+    },
+    {
+      "cwe": 643,
+      "name": "Improper Neutralization of Data within XPath Expressions ('XPath Injection')",
+      "description": "The product uses external input to dynamically construct an XPath expression used to retrieve data from an XML database, but it does not neutralize or incorrectly neutralizes that input. This allows an attacker to control the structure of the query. The net effect is that the attacker will have control over the information selected from the XML database and may use that ability to control application flow, modify logic, retrieve unauthorized data, or bypass important checks (e.g. authentication).",
+      "mitigations": [
+        "Use parameterized XPath queries (e.g. using XQuery). This will help ensure separation between data plane and control plane.",
+        "Properly validate user input. Reject data where appropriate, filter where appropriate and escape where appropriate. Make sure input that will be used in XPath queries is safe in that context."
+      ],
+      "example": {
+        "language": "Java",
+        "code": "XPath xpath = XPathFactory.newInstance().newXPath();\nXPathExpression xlogin = xpath.compile(\"//users/user[login/text()='\" + login.getUserName() + \"' and password/text() = '\" + login.getPassword() + \"']/home_dir/text()\");\nDocument d = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(new File(\"db.xml\"));\nString homedir = xlogin.evaluate(d);"
+      }
+    }
+  ]
+}

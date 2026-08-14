@@ -132,6 +132,8 @@ vulnbench/
     c2_llm_zap.py       C2  LLM triages ZAP findings
     c3_llm_rules.py     C3  LLM authors Semgrep rules, then Semgrep runs them
     a1_agents.py        A1  multi-agent scout → hunter → verifier
+    a4_rag.py           A4  CWE reference retrieved per file, prepended to the B3 prompt
+    cwe_kb.py           shared CWE knowledge base + its retrievers (A4)
     a5_parse.py         A5  model cuts the file to its risky portion, then B3 evaluates it
     a6_summarize.py     A6  structural-summary pass feeds the B3 judge
     a7_fewshot.py       A7  labeled worked examples replayed before the file

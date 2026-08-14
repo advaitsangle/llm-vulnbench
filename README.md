@@ -34,6 +34,8 @@ point it at whatever benchmark you have.
 - A1: Multi-agent roles (scout / hunt / verify)
 - A2: AST-augmented context (model reads a parsed AST instead of raw source)
 - A3: CFG/DFG-augmented context (model reads a control-/data-flow sketch instead of raw source)
+- A4: Retrieval-augmented CWE context (the entries most similar to each file are retrieved
+  from a bundled extract of the MITRE CWE catalog and prepended to the B3 prompt)
 - A5: Risky-portion extraction, then B3 evaluation (the model cuts the file first)
 - A6: Summarize then judge (a structural summary of each file feeds the B3 judge)
 - A7: Few-shot labeled examples (prompt-level priming)
@@ -64,8 +66,8 @@ chosen conditions actually use:
 | You want… | Install | Used by |
 |-----------|---------|---------|
 | pretty CLI (banner, progress bar, color table) | `pip install 'vulnbench[pretty]'` (`rich`) | all runs (degrades to plain text without it) |
-| a local model | [Ollama](https://ollama.com) + `ollama pull <model>` | B3, C1, C2, C3, A1, A2, A3, A5, A6, A7, A8, A9 |
-| a frontier model | `pip install 'vulnbench[anthropic]'` + `ANTHROPIC_API_KEY` | B3, C1, C2, C3, A1, A2, A3, A5, A6, A7, A8, A9 |
+| a local model | [Ollama](https://ollama.com) + `ollama pull <model>` | B3, C1, C2, C3, A1, A2, A3, A4, A5, A6, A7, A8, A9 |
+| a frontier model | `pip install 'vulnbench[anthropic]'` + `ANTHROPIC_API_KEY` | B3, C1, C2, C3, A1, A2, A3, A4, A5, A6, A7, A8, A9 |
 | static analysis | `pipx install semgrep` | B1, C1, C3 |
 | dynamic analysis | Docker (`deploy/` brings up the app + a ZAP daemon) | B2, C2 |
 | AST parsing | `pip install 'vulnbench[structural]'` (`tree-sitter` + grammars) | A2, A3 |
@@ -208,12 +210,15 @@ is **rejected before the run starts**, so a typo like `maxfiles` fails loudly.
 
 | Knob | Conditions | Default | Meaning |
 |---|---|---|---|
-| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A2, A3, A5, A6, A7, A8, A9 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
-| `max_files` | B3, A1, A2, A3, A5, A6, A7, A8, A9 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
-| `max_file_bytes` | B3, C1, A1, A2, A3, A5, A6, A7, A8, A9 | 60000 | per-file read cap (the run records any truncation) |
+| `sample_files`, `sample_seed` | B1, B3, C1, C3, A1, A2, A3, A4, A5, A6, A7, A8, A9 | 0 (= off), 42 | smoke test: examine a seeded random sample of files (set by `--sample` / `--sample-seed`) |
+| `max_files` | B3, A1, A2, A3, A4, A5, A6, A7, A8, A9 | 0 (= all) | cap on source files examined (reproducible sorted subset) |
+| `max_file_bytes` | B3, C1, A1, A2, A3, A4, A5, A6, A7, A8, A9 | 60000 | per-file read cap (the run records any truncation) |
 | `ast_max_bytes` | A2 | 60000 | truncate each file's rendered AST text past this many characters |
 | `cfg_max_bytes` | A3 | 60000 | truncate each file's rendered CFG/DFG text past this many characters |
 | `shots` | A7 | 4 | how many built-in labeled examples to replay (1-5; A7 always shows at least one) |
+| `k` | A4 | 5 | CWE entries retrieved per file (1-11; 11 = the whole base, i.e. no retrieval) |
+| `retriever` | A4 | `auto` | `auto` / `embedding` / `lexical`; `auto` prefers embeddings, falls back to lexical |
+| `embed_model` | A4 | `embeddinggemma` | Ollama embedding model backing the embedding retriever |
 | `semgrep_ruleset` | B1, C1 | `p/owasp-top-ten` | the Semgrep config/ruleset to run |
 | `semgrep_timeout` | C3 | 1800 | Semgrep timeout (s) for the authored-rules scan |
 | `min_risk` | A1 | 0.0 | scout deep-dives only files it scores ≥ this (0 = all) |
@@ -261,7 +266,7 @@ vulnbench run --condition B3 --source ./src --ground-truth gt.csv --model mock \
     --sample 25 --sample-seed 7        # a different, equally reproducible slice
 ```
 
-Sampling applies to the conditions that read source (B1, B3, C1, C3, A1, A2, A3, A5, A6, A7, A8, A9); the DAST cells
+Sampling applies to the conditions that read source (B1, B3, C1, C3, A1, A2, A3, A4, A5, A6, A7, A8, A9); the DAST cells
 (B2, C2) attack a running URL and ignore it. In the interactive session this is step 4,
 **Run scope**, where you pick *smoke test* or *full run*.
 
