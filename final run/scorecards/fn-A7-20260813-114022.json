@@ -1,0 +1,2602 @@
+[
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00027.java",
+      "line": 34,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest00027\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, param) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest00027\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00027' is concatenated directly into a SQL string and executed via Statement.executeUpdate."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00103.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is decoded and directly used in the SQL string without parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement with setString() instead of string concatenation for SQL queries.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is decoded and directly used in the SQL string without parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest00103' is concatenated directly into a SQL string and executed via JDBCtemplate.queryForObject."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00109.java",
+      "line": 73,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is decoded and then concatenated into the SQL string without parameterization.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement with setString() to safely handle user input in SQL queries.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is decoded and then concatenated into the SQL string without parameterization.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest00109' is concatenated directly into a SQL string and executed via Statement.execute."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00123.java",
+      "line": 61,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.99,
+    "verdict": "confirmed",
+    "evidence": "The DES algorithm is explicitly used in the line 'javax.crypto.Cipher.getInstance(\"DES/CBC/PKCS5Padding\");'.",
+    "counter_evidence": null,
+    "remediation": "Replace DES with a stronger encryption algorithm like AES.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The DES algorithm is explicitly used in the line 'javax.crypto.Cipher.getInstance(\"DES/CBC/PKCS5Padding\");'.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The code uses the DES encryption algorithm, which is considered weak and vulnerable to attacks."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00131.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The header value is URL decoded and directly used to create a File object without any path traversal checks.",
+    "counter_evidence": null,
+    "remediation": "Validate the file path to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The header value is URL decoded and directly used to create a File object without any path traversal checks.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest00131' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00132.java",
+      "line": 53,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The header value is URL-decoded and directly concatenated to TESTFILES_DIR without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate the input against a whitelist of allowed filenames or use Path.normalize() to prevent traversal attacks.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The header value is URL-decoded and directly concatenated to TESTFILES_DIR without validation.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest00132' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00178.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate random bytes.",
+    "counter_evidence": null,
+    "remediation": "Use a stronger algorithm like 'DRBG' or 'NIST.SP800-90A.HMAC-SHA256' instead of SHA1PRNG.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate random bytes.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The use of SHA1PRNG for generating random numbers is considered weak and vulnerable to attacks."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00188.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "java.security.SecureRandom.getInstance(\"SHA1PRNG\").nextLong() is used to generate a rememberMeKey.",
+    "counter_evidence": "The use of SecureRandom with SHA1PRNG might be sufficient for some purposes, but it's not recommended for cryptographic security due to potential predictability issues.",
+    "remediation": "Consider using java.security.SecureRandom without specifying an algorithm or using a stronger algorithm like 'DRBG' if available.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "java.security.SecureRandom.getInstance(\"SHA1PRNG\").nextLong() is used to generate a rememberMeKey.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of java.security.SecureRandom with a specific algorithm ('SHA1PRNG') may not provide sufficient randomness for all security contexts."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00230.java",
+      "line": 61,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random.nextBytes(bytes) is used to generate a random byte array for the rememberMeKey.",
+    "counter_evidence": null,
+    "remediation": "Use a cryptographically secure random number generator like SecureRandom instead of java.util.Random.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random.nextBytes(bytes) is used to generate a random byte array for the rememberMeKey.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "java.util.Random is used to generate a random byte array for the rememberMeKey."
+    }
+  },
+  {
+    "vuln_class": 328,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00272.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "MD5 is used to hash the input parameter 'bar', which is derived from an HTTP header.",
+    "counter_evidence": null,
+    "remediation": "Replace MD5 with a stronger hashing algorithm like SHA-256.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "MD5 is used to hash the input parameter 'bar', which is derived from an HTTP header.",
+    "extra": {
+      "vuln_type": "Weak Hash",
+      "diagnostic": "The code uses MD5 to hash a sensitive value from an untrusted source."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00285.java",
+      "line": 37,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The 'Referer' header is decoded and then directly written to the response without encoding for HTML.",
+    "counter_evidence": null,
+    "remediation": "Use a proper HTML encoder before writing to the response.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The 'Referer' header is decoded and then directly written to the response without encoding for HTML.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP header 'Referer' is directly written to the response without proper encoding."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00293.java",
+      "line": 53,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The header value is decoded and then directly concatenated into the command string without validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize input to ensure it does not contain shell metacharacters before constructing the command.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The header value is decoded and then directly concatenated into the command string without validation or sanitization.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest00293' is decoded and then used to construct a command passed to ProcessBuilder."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00323.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The header value is decoded and stored in session without any validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate the header value against a whitelist of allowed characters before storing it in session.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The header value is decoded and stored in session without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest00323' is stored in session without validation."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00327.java",
+      "line": 44,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The header value is decoded and passed to ThingFactory.createThing().doSomething() without validation before being stored in session.",
+    "counter_evidence": null,
+    "remediation": "Validate the header value against a whitelist of allowed characters or patterns.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The header value is decoded and passed to ThingFactory.createThing().doSomething() without validation before being stored in session.",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest00327' is processed and stored in session without validation."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00357.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "The algorithm 'AES/ECB/PKCS5Padding' is hardcoded and uses ECB mode which is vulnerable to pattern analysis attacks.",
+    "counter_evidence": null,
+    "remediation": "Use a stronger encryption mode like AES/CBC/PKCS5Padding with a secure random initialization vector (IV).",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The algorithm 'AES/ECB/PKCS5Padding' is hardcoded and uses ECB mode which is vulnerable to pattern analysis attacks.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The encryption algorithm 'AES/ECB/PKCS5Padding' is used with a weak mode (ECB) that does not provide adequate security."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00380.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest00380' is directly written to the response without any escaping or encoding.",
+    "counter_evidence": null,
+    "remediation": "Use a library like OWASP Java Encoder to escape HTML output before writing it to the response.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest00380' is directly written to the response without any escaping or encoding.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00380' is directly written to the response without escaping."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00384.java",
+      "line": 29,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter is directly passed to response.getWriter().printf() without escaping or encoding.",
+    "counter_evidence": null,
+    "remediation": "Use a template engine that automatically escapes HTML, or manually escape the input before outputting it.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is directly passed to response.getWriter().printf() without escaping or encoding.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00384' is passed to response.getWriter().printf() without proper escaping."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00397.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random.nextBytes(bytes) is used to generate a random byte array for the rememberMeKey.",
+    "counter_evidence": null,
+    "remediation": "Use a cryptographically secure random number generator like SecureRandom instead of java.util.Random.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random.nextBytes(bytes) is used to generate a random byte array for the rememberMeKey.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "java.util.Random is used to generate a random byte array for the rememberMeKey."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00414.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate random bytes.",
+    "counter_evidence": null,
+    "remediation": "Use a stronger algorithm like 'DRBG' or 'NIST.SP800-90A.HMAC-SHA256' instead of SHA1PRNG.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate random bytes.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The use of SHA1PRNG for generating random bytes is considered weak and vulnerable to attacks."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00419.java",
+      "line": 53,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "SecureRandom.nextGaussian() generates a Gaussian distribution of numbers which is not suitable for cryptographic purposes.",
+    "counter_evidence": null,
+    "remediation": "Use SecureRandom.nextBytes() to generate a secure random key.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "SecureRandom.nextGaussian() generates a Gaussian distribution of numbers which is not suitable for cryptographic purposes.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of SecureRandom.nextGaussian() for generating a rememberMe key is not sufficiently random."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00420.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "SecureRandom.nextGaussian() is used without specifying a cryptographic strength.",
+    "counter_evidence": "The code uses SecureRandom.getInstance(\"SHA1PRNG\") which should provide cryptographic strength.",
+    "remediation": "Ensure that SecureRandom is instantiated with a strong algorithm like SHA1PRNG or another cryptographically secure algorithm.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "SecureRandom.nextGaussian() is used without specifying a cryptographic strength.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of SecureRandom.nextGaussian() without specifying a cryptographic strength is considered weak."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00457.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest00457' is used to construct a file path without validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest00457' is used to construct a file path without validation or sanitization.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00457' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00512.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.97,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest00512\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest00512\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00512' is concatenated directly into a SQL string and executed via Statement.execute."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00572.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest00572' is used to set the value of 'bar', which is then appended to a command string and executed with Runtime.exec().",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed commands or arguments, or pass arguments as String[] to exec() to avoid shell interpretation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest00572' is used to set the value of 'bar', which is then appended to a command string and executed with Runtime.exec().",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00572' is concatenated into a shell command string passed to Runtime.exec."
+    }
+  },
+  {
+    "vuln_class": 328,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00637.java",
+      "line": 52,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "MD5 is used to hash the input value 'bar' which is derived from an untrusted HTTP parameter.",
+    "counter_evidence": null,
+    "remediation": "Replace MD5 with a stronger hashing algorithm like SHA-256.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "MD5 is used to hash the input value 'bar' which is derived from an untrusted HTTP parameter.",
+    "extra": {
+      "vuln_type": "Weak Hash",
+      "diagnostic": "The code uses MD5 to hash a value derived from an untrusted source."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00654.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random.nextLong() is used to generate a rememberMeKey without cryptographic strength.",
+    "counter_evidence": null,
+    "remediation": "Use SecureRandom instead of Random for generating secure keys.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random.nextLong() is used to generate a rememberMeKey without cryptographic strength.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "java.util.Random.nextLong() is used to generate a rememberMeKey, which can be predictable."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00667.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "SecureRandom is instantiated with a specific algorithm and range, which might not be cryptographically strong enough for all use cases.",
+    "counter_evidence": "The code uses SecureRandom, which is generally considered secure, but the specific configuration may need review based on application requirements.",
+    "remediation": "Consider using a stronger random number generator or increasing the range of the random numbers generated.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "SecureRandom is instantiated with a specific algorithm and range, which might not be cryptographically strong enough for all use cases.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of SecureRandom with a fixed algorithm ('SHA1PRNG') and range (nextInt(99)) may not provide sufficient randomness for security-sensitive applications."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00670.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is directly used as a key in request.getSession().putValue(bar, \"10340\").",
+    "counter_evidence": null,
+    "remediation": "Validate the input to ensure it does not contain malicious or unexpected values.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is directly used as a key in request.getSession().putValue(bar, \"10340\").",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00670' is used as a key to store data in the session without validation."
+    }
+  },
+  {
+    "vuln_class": 90,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00701.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'bar' derived from the request is directly used in the LDAP search filter without any validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed characters for 'bar', or use prepared statements with named parameters if supported by the LDAP library.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'bar' derived from the request is directly used in the LDAP search filter without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "LDAP Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00701' is concatenated directly into an LDAP search filter string."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00788.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest00788' is decoded and used to construct a file path without any validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate the input to ensure it does not contain directory traversal sequences (e.g., '../').",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest00788' is decoded and used to construct a file path without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00788' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00815.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest00815' is URL-decoded and then concatenated into the command string 'echo ' + bar'.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed characters or values for 'bar', or pass arguments as separate elements in the ProcessBuilder's command list.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest00815' is URL-decoded and then concatenated into the command string 'echo ' + bar'.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00815' is concatenated into a shell command string passed to ProcessBuilder."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00859.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "javax.crypto.KeyGenerator.getInstance(\"DES\").generateKey() is used to generate a key for encryption.",
+    "counter_evidence": null,
+    "remediation": "Replace 'DES' with a stronger algorithm like AES (e.g., KeyGenerator.getInstance(\"AES\")).",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "javax.crypto.KeyGenerator.getInstance(\"DES\").generateKey() is used to generate a key for encryption.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The code uses a weak encryption algorithm 'DES' which is considered broken for cryptographic purposes."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00865.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter is used to construct a file path directly without validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is used to construct a file path directly without validation or sanitization.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00865' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 328,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00871.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.security.MessageDigest.getInstance(\"SHA1\", \"SUN\") is used to hash the input.",
+    "counter_evidence": null,
+    "remediation": "Use a stronger hash algorithm like SHA-256 or better.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.security.MessageDigest.getInstance(\"SHA1\", \"SUN\") is used to hash the input.",
+    "extra": {
+      "vuln_type": "Weak Hash",
+      "diagnostic": "The SHA1 hash algorithm is used to hash user input, which is considered weak against modern cryptographic attacks."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00882.java",
+      "line": 36,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The untrusted parameter 'BenchmarkTest00882' is directly written to the response with response.getWriter().print(bar); without any escaping or encoding.",
+    "counter_evidence": null,
+    "remediation": "Encode the output using a method suitable for HTML context before writing it to the response.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The untrusted parameter 'BenchmarkTest00882' is directly written to the response with response.getWriter().print(bar); without any escaping or encoding.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00882' is directly written to the response without escaping."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00896.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The value of 'bar' is derived from user input and directly appended to the command string in argList.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist for allowed commands or arguments, or sanitize the input before using it in the command.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The value of 'bar' is derived from user input and directly appended to the command string in argList.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00896' is concatenated into a shell command string passed to ProcessBuilder."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00900.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random.nextGaussian() is used to generate a rememberMeKey, which can be predicted.",
+    "counter_evidence": null,
+    "remediation": "Use a cryptographically secure random number generator like SecureRandom instead of java.util.Random.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random.nextGaussian() is used to generate a rememberMeKey, which can be predicted.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of java.util.Random.nextGaussian() for generating a rememberMeKey is vulnerable to prediction."
+    }
+  },
+  {
+    "vuln_class": 614,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00903.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "The cookie 'SomeCookie' is created with the secure flag set to false, allowing it to be sent over HTTP.",
+    "counter_evidence": null,
+    "remediation": "Set the secure flag to true: cookie.setSecure(true);",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie 'SomeCookie' is created with the secure flag set to false, allowing it to be sent over HTTP.",
+    "extra": {
+      "vuln_type": "Insecure Cookie (missing Secure flag)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00903' is used to set a cookie with the secure flag disabled."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00915.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "SecureRandom.getInstance(\"SHA1PRNG\") is used to generate a double value.",
+    "counter_evidence": "The code sets the cookie as HttpOnly and Secure, which mitigates some risks.",
+    "remediation": "Consider using a stronger random number generator like java.security.SecureRandom without specifying an algorithm or use java.util.concurrent.ThreadLocalRandom for non-cryptographic purposes.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "SecureRandom.getInstance(\"SHA1PRNG\") is used to generate a double value.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of SecureRandom with SHA1PRNG may not provide sufficient randomness for cryptographic purposes."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00934.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "req.getParameter(\"BenchmarkTest00934\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "req.getParameter(\"BenchmarkTest00934\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00934' is concatenated directly into a SQL string and executed via JDBCtemplate.queryForObject."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00939.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "req.getParameter(\"BenchmarkTest00939\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "req.getParameter(\"BenchmarkTest00939\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest00939' is concatenated directly into a SQL string and executed via Statement.executeUpdate."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00953.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is URL-decoded and directly concatenated to TESTFILES_DIR without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate the file name against a whitelist or sanitize it before using it in file operations.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is URL-decoded and directly concatenated to TESTFILES_DIR without validation.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest00953' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest00954.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is decoded and used to construct a file path without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate the cookie value against a whitelist of allowed filenames before using it in file operations.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is decoded and used to construct a file path without validation.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest00954' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01003.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is decoded and used in the SQL string without parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement.setString(2, bar) instead of concatenation for the password condition.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is decoded and used in the SQL string without parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest01003' is concatenated directly into a SQL string and executed via PreparedStatement.execute."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01004.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "java.net.URLDecoder.decode(theCookie.getValue(), \"UTF-8\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(2, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.net.URLDecoder.decode(theCookie.getValue(), \"UTF-8\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest01004' is concatenated directly into a SQL string and executed via PreparedStatement.execute."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01084.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.9,
+    "verdict": "candidate",
+    "evidence": "The header value is URL decoded and passed to doSomething(), which returns it directly into the SQL string without further sanitization.",
+    "counter_evidence": "The code uses PreparedStatement.setString() for one parameter, but concatenates the other parameter directly into the SQL string.",
+    "remediation": "Use PreparedStatement for both parameters or properly sanitize the concatenated part.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "The header value is URL decoded and passed to doSomething(), which returns it directly into the SQL string without further sanitization.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest01084' is concatenated directly into a SQL string and executed via PreparedStatement.setString."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01094.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "request.getHeader(\"BenchmarkTest01094\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getHeader(\"BenchmarkTest01094\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest01094' is concatenated directly into a SQL string and executed via Statement.execute."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01097.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "request.getHeader(\"BenchmarkTest01097\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(2, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getHeader(\"BenchmarkTest01097\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest01097' is concatenated directly into a SQL string and executed via Statement.executeUpdate."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01106.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "javax.crypto.KeyGenerator.getInstance(\"DES\").generateKey() and javax.crypto.Cipher.getInstance(algorithm) with algorithm defaulting to DESede/ECB/PKCS5Padding.",
+    "counter_evidence": null,
+    "remediation": "Use a stronger encryption algorithm like AES and avoid ECB mode. Consider using GCM or CBC modes with a secure random IV.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "javax.crypto.KeyGenerator.getInstance(\"DES\").generateKey() and javax.crypto.Cipher.getInstance(algorithm) with algorithm defaulting to DESede/ECB/PKCS5Padding.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The code uses a weak encryption algorithm (DES) and ECB mode, which is not recommended for secure data encryption."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01127.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random is used to generate a rememberMeKey which can be predictable.",
+    "counter_evidence": null,
+    "remediation": "Use java.security.SecureRandom instead of java.util.Random for generating secure keys.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random is used to generate a rememberMeKey which can be predictable.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of java.util.Random for generating a rememberMeKey is considered weak."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01139.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate a random number.",
+    "counter_evidence": null,
+    "remediation": "Replace 'SHA1PRNG' with a stronger algorithm like 'DRBG' or 'NIST.SP800-90A.HMAC.DRBG'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate a random number.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The use of SHA1PRNG for SecureRandom is considered weak and should be replaced with a stronger algorithm."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01140.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "SHA1PRNG is used to generate a secure random number, which is considered weak.",
+    "counter_evidence": "The code uses SecureRandom, which is generally recommended over other Random implementations for cryptographic purposes.",
+    "remediation": "Consider using a stronger algorithm like 'DRBG' or 'NIST.SP800-90A.HMAC_DRBG' instead of SHA1PRNG.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "SHA1PRNG is used to generate a secure random number, which is considered weak.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The use of SHA1PRNG for generating a secure random number is considered weak."
+    }
+  },
+  {
+    "vuln_class": 614,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01186.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "The cookie is created with 'cookie.setSecure(false);'.",
+    "counter_evidence": null,
+    "remediation": "Set the secure flag to true: cookie.setSecure(true);",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie is created with 'cookie.setSecure(false);'.",
+    "extra": {
+      "vuln_type": "Insecure Cookie (missing Secure flag)",
+      "diagnostic": "The cookie 'SomeCookie' is created with the secure flag set to false."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01201.java",
+      "line": 37,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "SecureRandom.nextGaussian() is used without a seed, which may not provide sufficient randomness for cryptographic security.",
+    "counter_evidence": "The code uses SecureRandom, which is generally considered secure for non-cryptographic purposes.",
+    "remediation": "Consider using a stronger random number generator if cryptographic security is required.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "SecureRandom.nextGaussian() is used without a seed, which may not provide sufficient randomness for cryptographic security.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of SecureRandom.nextGaussian() without a seed is considered weak for cryptographic purposes."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01289.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest01289\") is appended to 'cmd' and executed as a system command with no validation.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed commands or pass arguments as String[] to exec() to avoid shell interpretation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest01289\") is appended to 'cmd' and executed as a system command with no validation.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01289' is concatenated into a shell command string passed to Runtime.exec."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01293.java",
+      "line": 44,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "SHA1PRNG is used as the algorithm for SecureRandom, which is known to be weak.",
+    "counter_evidence": "The code uses SecureRandom, which is generally secure, but SHA1PRNG specifically is considered weak.",
+    "remediation": "Consider using a stronger algorithm like 'DRBG' or 'SHA-256/PRNG'.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "SHA1PRNG is used as the algorithm for SecureRandom, which is known to be weak.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The use of SHA1PRNG for SecureRandom is considered weak and outdated."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01329.java",
+      "line": 75,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest01329' is directly used to construct a file path without any validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest01329' is directly used to construct a file path without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01329' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01379.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest01379\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest01379\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01379' is concatenated directly into a SQL string and executed via CallableStatement.executeQuery."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01394.java",
+      "line": 42,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest01394\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(2, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest01394\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01394' is concatenated directly into a SQL string and executed via Statement.executeUpdate."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01409.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'param' is used to construct the file path without proper validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'param' is used to construct the file path without proper validation or sanitization.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'param' is used to construct a file path that can be manipulated to traverse directories."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01456.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The value of 'bar' derived from the untrusted parameter is directly stored in the session with request.getSession().putValue(\"userid\", bar);.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input before storing it in the session.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The value of 'bar' derived from the untrusted parameter is directly stored in the session with request.getSession().putValue(\"userid\", bar);.",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP parameter 'param' is directly stored in the session without validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01471.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(param) flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(param) flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'param' is concatenated directly into a SQL string and executed via JDBCtemplate.batchUpdate."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01482.java",
+      "line": 134,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "KeyGenerator.getInstance(\"AES\").generateKey() is used without specifying a key size or secure random.",
+    "counter_evidence": null,
+    "remediation": "Use KeyGenerator.getInstance(\"AES\").init(256, new SecureRandom()) to generate a 256-bit AES key with a secure random.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "KeyGenerator.getInstance(\"AES\").generateKey() is used without specifying a key size or secure random.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The AES key is generated using KeyGenerator.getInstance(\"AES\").generateKey() without specifying a key size or secure random."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01495.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest01495' is directly used in the file path construction without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest01495' is directly used in the file path construction without validation.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01495' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01517.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'bar' derived from the request is directly concatenated into the command string 'echo ' + bar'.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed commands or escape special characters in user input.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'bar' derived from the request is directly concatenated into the command string 'echo ' + bar'.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01517' is concatenated into a shell command string passed to ProcessBuilder."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01551.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "The parameter is directly appended to '_SafeStuff' and stored in the session without any validation or sanitization.",
+    "counter_evidence": "Appending '_SafeStuff' might imply some level of safety, but this is not a strong defense against all trust boundary violations.",
+    "remediation": "Validate and sanitize the input before storing it in the session.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "The parameter is directly appended to '_SafeStuff' and stored in the session without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01551' is directly stored in the session without validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01555.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest01555' is passed to the SQL query without any form of sanitization or parameter binding.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement with parameterized queries instead of string concatenation for SQL queries.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest01555' is passed to the SQL query without any form of sanitization or parameter binding.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01555' is concatenated directly into a SQL string and executed via JDBCtemplate.queryForObject."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01557.java",
+      "line": 32,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "req.getParameter(\"BenchmarkTest01557\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "req.getParameter(\"BenchmarkTest01557\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01557' is concatenated directly into a SQL string and executed via Statement.execute."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01644.java",
+      "line": 73,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is decoded and directly concatenated to a file path without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate the input against a whitelist of allowed filenames or use Path.normalize() to prevent traversal attacks.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is decoded and directly concatenated to a file path without validation.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01644' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01719.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'bar' from doSomething() is concatenated into the SQL string without being used in a PreparedStatement.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement for all parameters and remove direct concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'bar' from doSomething() is concatenated into the SQL string without being used in a PreparedStatement.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01719' is concatenated directly into a SQL string and executed via PreparedStatement.execute."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01729.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is decoded and then directly concatenated into the SQL query string without any sanitization or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement with placeholders for parameters instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is decoded and then directly concatenated into the SQL query string without any sanitization or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01729' is concatenated directly into a SQL string and executed via Statement.addBatch."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01732.java",
+      "line": 64,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest01732' is decoded and then concatenated into the SQL string without any sanitization or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement with setString() instead of string concatenation for SQL queries.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest01732' is decoded and then concatenated into the SQL string without any sanitization or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest01732' is concatenated directly into a SQL string and executed via Statement.executeQuery."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01840.java",
+      "line": 62,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is decoded and directly used to construct a file path without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate the cookie value against a whitelist of allowed filenames before using it in file operations.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is decoded and directly used to construct a file path without validation.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest01840' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01858.java",
+      "line": 123,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.99,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random is not cryptographically secure and should not be used for generating security-sensitive values like rememberMeKey.",
+    "counter_evidence": null,
+    "remediation": "Replace with a cryptographically secure random number generator such as SecureRandom.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random is not cryptographically secure and should not be used for generating security-sensitive values like rememberMeKey.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of java.util.Random.nextLong() for generating a rememberMeKey is insecure."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01882.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The cookie value is decoded and directly concatenated into the SQL string without parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie value is decoded and directly concatenated into the SQL string without parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted cookie value 'BenchmarkTest01882' is concatenated directly into a SQL string and executed via JDBCtemplate.query."
+    }
+  },
+  {
+    "vuln_class": 643,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest01894.java",
+      "line": 123,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The value of 'bar' from the cookie is used in an XPath expression without sanitization.",
+    "counter_evidence": null,
+    "remediation": "Use a parameterized query or validate and sanitize input to prevent injection attacks.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The value of 'bar' from the cookie is used in an XPath expression without sanitization.",
+    "extra": {
+      "vuln_type": "XPath Injection",
+      "diagnostic": "Untrusted HTTP parameter 'param' from cookie is concatenated into an XPath expression and evaluated."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02070.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The header value is URL decoded and passed as an argument to Runtime.exec() without validation.",
+    "counter_evidence": null,
+    "remediation": "Validate the input against a whitelist of allowed characters or use a safer API that does not involve command execution.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The header value is URL decoded and passed as an argument to Runtime.exec() without validation.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP header 'BenchmarkTest02070' is passed as an argument to Runtime.exec."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02188.java",
+      "line": 34,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.99,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest02188\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest02188\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02188' is concatenated directly into a SQL string and executed via Statement.executeQuery."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02197.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is directly used to create a File object without any checks for directory traversal sequences.",
+    "counter_evidence": null,
+    "remediation": "Validate the input against a whitelist of allowed filenames or use Path.normalize() to prevent path traversal attacks.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is directly used to create a File object without any checks for directory traversal sequences.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02197' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02233.java",
+      "line": 44,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is directly used in response.getWriter().printf(bar, obj) without escaping or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Use a template engine that automatically escapes HTML, or manually escape the output using an appropriate method.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is directly used in response.getWriter().printf(bar, obj) without escaping or sanitization.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02233' is passed to response.getWriter().printf() without proper escaping."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02234.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter is directly used in response.getWriter().printf(bar, obj) without any sanitization or encoding.",
+    "counter_evidence": null,
+    "remediation": "Use a template engine or encode the output using OWASP's ESAPI.encoder().encodeForHTML(bar).",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is directly used in response.getWriter().printf(bar, obj) without any sanitization or encoding.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02234' is concatenated into a string and passed to response.getWriter().printf() without escaping."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02262.java",
+      "line": 35,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "The parameter is stored in the session without any validation or sanitization.",
+    "counter_evidence": "The value is HTML-escaped before being displayed, which mitigates XSS risk.",
+    "remediation": "Validate and sanitize the input before storing it in the session.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "The parameter is stored in the session without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02262' is stored in the session without proper validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02282.java",
+      "line": 37,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(\"BenchmarkTest02282\") flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(\"BenchmarkTest02282\") flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02282' is concatenated directly into a SQL string and executed via JDBCtemplate.batchUpdate."
+    }
+  },
+  {
+    "vuln_class": 90,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02299.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The value of 'bar' (derived from 'param') is directly used in the LDAP search filter without any validation or escaping.",
+    "counter_evidence": null,
+    "remediation": "Use a parameterized query or validate and escape the input to prevent injection attacks.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The value of 'bar' (derived from 'param') is directly used in the LDAP search filter without any validation or escaping.",
+    "extra": {
+      "vuln_type": "LDAP Injection",
+      "diagnostic": "Untrusted HTTP parameter 'param' is concatenated directly into an LDAP search filter string."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02324.java",
+      "line": 43,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The value of 'bar' is directly inserted into the response using printf without encoding.",
+    "counter_evidence": null,
+    "remediation": "Encode 'bar' before inserting it into the response.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The value of 'bar' is directly inserted into the response using printf without encoding.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'param' is reflected in the response without proper encoding."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02365.java",
+      "line": 44,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "request.getParameter(param) flows into the SQL string literal without escaping or parameterisation.",
+    "counter_evidence": null,
+    "remediation": "Replace with PreparedStatement and setString(1, bar) instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameter(param) flows into the SQL string literal without escaping or parameterisation.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'param' is concatenated directly into a SQL string and executed via Statement.execute."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02414.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'bar' derived from the request is directly appended to the command string in argList.add(\"echo \" + bar); without validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed characters for 'bar', or escape special shell characters before adding it to the command.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'bar' derived from the request is directly appended to the command string in argList.add(\"echo \" + bar); without validation or sanitization.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02414' is concatenated into a shell command string passed to ProcessBuilder."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02419.java",
+      "line": 36,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random.nextFloat() is used to generate a rememberMeKey which could be predictable.",
+    "counter_evidence": null,
+    "remediation": "Replace with a cryptographically secure random number generator like SecureRandom.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random.nextFloat() is used to generate a rememberMeKey which could be predictable.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02419' is processed using a weak random number generator java.util.Random.nextFloat()."
+    }
+  },
+  {
+    "vuln_class": 22,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02466.java",
+      "line": 37,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is directly concatenated to the TESTFILES_DIR path without any validation or sanitization.",
+    "counter_evidence": null,
+    "remediation": "Validate and sanitize the input to ensure it does not contain directory traversal sequences like '../'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is directly concatenated to the TESTFILES_DIR path without any validation or sanitization.",
+    "extra": {
+      "vuln_type": "Path Traversal",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02466' is used to construct a file path without proper validation."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02473.java",
+      "line": 46,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "java.lang.Math.random() is used to generate a rememberMeKey without any additional entropy or cryptographic strength.",
+    "counter_evidence": null,
+    "remediation": "Use a cryptographically secure random number generator like SecureRandom instead of Math.random().",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.lang.Math.random() is used to generate a rememberMeKey without any additional entropy or cryptographic strength.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The application uses java.lang.Math.random() to generate a rememberMeKey, which is predictable."
+    }
+  },
+  {
+    "vuln_class": 78,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02496.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "request.getParameterValues(\"BenchmarkTest02496\") is appended to \"echo \" and executed as a system command with no validation.",
+    "counter_evidence": null,
+    "remediation": "Use a whitelist of allowed inputs or escape shell metacharacters before constructing the command.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "request.getParameterValues(\"BenchmarkTest02496\") is appended to \"echo \" and executed as a system command with no validation.",
+    "extra": {
+      "vuln_type": "OS Command Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02496' is concatenated into a shell command string passed to ProcessBuilder."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02534.java",
+      "line": 40,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'bar' is concatenated into the SQL string without being used in a PreparedStatement placeholder.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement for all parameters to avoid SQL injection.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'bar' is concatenated into the SQL string without being used in a PreparedStatement placeholder.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02534' is concatenated directly into a SQL string and executed via PreparedStatement.setString."
+    }
+  },
+  {
+    "vuln_class": 328,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02575.java",
+      "line": 53,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "java.security.MessageDigest.getInstance(\"MD5\") is used to hash the input.",
+    "counter_evidence": null,
+    "remediation": "Replace MD5 with a stronger hashing algorithm like SHA-256.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.security.MessageDigest.getInstance(\"MD5\") is used to hash the input.",
+    "extra": {
+      "vuln_type": "Weak Hash",
+      "diagnostic": "The code uses MD5 to hash a sensitive value, which is considered weak and vulnerable to collision attacks."
+    }
+  },
+  {
+    "vuln_class": 79,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02601.java",
+      "line": 36,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.98,
+    "verdict": "confirmed",
+    "evidence": "The parameter is decoded and then written directly to the response without additional escaping.",
+    "counter_evidence": null,
+    "remediation": "Use a library like OWASP Java Encoder to escape HTML output.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is decoded and then written directly to the response without additional escaping.",
+    "extra": {
+      "vuln_type": "Cross-site Scripting (XSS)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02601' is decoded and then written directly to the response without further escaping."
+    }
+  },
+  {
+    "vuln_class": 330,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02604.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "java.util.Random is used to generate a rememberMeKey which can be predicted.",
+    "counter_evidence": null,
+    "remediation": "Use SecureRandom instead of Random for generating secure keys.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.util.Random is used to generate a rememberMeKey which can be predicted.",
+    "extra": {
+      "vuln_type": "Weak Randomness",
+      "diagnostic": "The use of java.util.Random for generating a rememberMeKey is vulnerable to prediction."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02620.java",
+      "line": 63,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate a random number.",
+    "counter_evidence": null,
+    "remediation": "Use a stronger algorithm like 'DRBG' or 'NativePRNGNonBlocking'.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "java.security.SecureRandom.getInstance(\"SHA1PRNG\") is used to generate a random number.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The use of SHA1PRNG for SecureRandom is considered weak and vulnerable to attacks."
+    }
+  },
+  {
+    "vuln_class": 501,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02622.java",
+      "line": 38,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.95,
+    "verdict": "confirmed",
+    "evidence": "The parameter is extracted from the query string and directly used as a key in request.getSession().setAttribute(bar, \"10340\").",
+    "counter_evidence": null,
+    "remediation": "Validate or sanitize 'bar' before using it as a session attribute key.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter is extracted from the query string and directly used as a key in request.getSession().setAttribute(bar, \"10340\").",
+    "extra": {
+      "vuln_type": "Trust Boundary Violation",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02622' is used directly as a session attribute key without validation."
+    }
+  },
+  {
+    "vuln_class": 89,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02655.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "The parameter 'BenchmarkTest02655' is decoded from the query string and directly inserted into the SQL statement without any sanitization or parameterization.",
+    "counter_evidence": null,
+    "remediation": "Use PreparedStatement with placeholders for parameters instead of string concatenation.",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The parameter 'BenchmarkTest02655' is decoded from the query string and directly inserted into the SQL statement without any sanitization or parameterization.",
+    "extra": {
+      "vuln_type": "SQL Injection",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02655' is concatenated directly into a SQL string and executed via Statement.executeUpdate."
+    }
+  },
+  {
+    "vuln_class": 327,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02662.java",
+      "line": 39,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 0.85,
+    "verdict": "candidate",
+    "evidence": "AES/CCM/NoPadding is used without specifying a strong key size or ensuring proper padding.",
+    "counter_evidence": "The code uses KeyGenerator.getInstance(\"AES\").generateKey(), which might generate a secure key size by default.",
+    "remediation": "Ensure AES is configured with a strong key size (e.g., 256 bits) and consider using a more robust padding scheme like PKCS5Padding.",
+    "requires_human_review": true,
+    "rule_id": null,
+    "message": "AES/CCM/NoPadding is used without specifying a strong key size or ensuring proper padding.",
+    "extra": {
+      "vuln_type": "Broken Crypto Algorithm",
+      "diagnostic": "The AES encryption algorithm is used with the CCM mode and NoPadding, which may be weak or misconfigured."
+    }
+  },
+  {
+    "vuln_class": 614,
+    "location": {
+      "kind": "source",
+      "file": "/var/folders/l8/1y11t4q11_b988m08l9g65kw0000gn/T/tmpgxxw7cug/BenchmarkTest02709.java",
+      "line": 53,
+      "column": null,
+      "url": null,
+      "method": null,
+      "param": null,
+      "test_case": null
+    },
+    "source_condition": "A7",
+    "confidence": 1.0,
+    "verdict": "confirmed",
+    "evidence": "The cookie 'SomeCookie' is created with the secure flag set to false.",
+    "counter_evidence": null,
+    "remediation": "Set the secure flag to true: cookie.setSecure(true);",
+    "requires_human_review": false,
+    "rule_id": null,
+    "message": "The cookie 'SomeCookie' is created with the secure flag set to false.",
+    "extra": {
+      "vuln_type": "Insecure Cookie (missing Secure flag)",
+      "diagnostic": "Untrusted HTTP parameter 'BenchmarkTest02709' is used to set a cookie with the secure flag disabled."
+    }
+  }
+]
