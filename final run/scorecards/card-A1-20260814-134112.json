@@ -23,7 +23,7 @@
       "vulnbench_version": "0.1.0",
       "timestamp_utc": "2026-08-14T17:41:12+00:00",
       "config": {},
-      "git_sha": "59c3734",
+      "git_sha": "c2b2b4a",
       "git_dirty": true,
       "ollama_version": "ollama version is 0.30.10"
     },
