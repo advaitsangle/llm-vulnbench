@@ -102,20 +102,20 @@ B1/B2 are scanner only, no `files_scanned` or `truncated_files`.
 
 | Cond | git sha | ollama | date | machine / RAM |
 |------|---------|--------|------|---------------|
-| B1 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| B2 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| B3 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| C1 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| C2 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| A1 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| A4 | c2b2b4a | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
-| A2 | c7846e8 | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
-| A3 | c7846e8 | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
-| A5 | c7846e8 | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
-| A6 | c7846e8 | 0.20.7 | 2026-08-13 | M-series (M1 Pro), 16 GB |
-| A7 | c7846e8 | 0.9.0 | 2026-08-13 | M-series, 24 GB |
-| A8 | c7846e8 | 0.9.0 | 2026-08-13 | M-series, 24 GB |
-| A9 | c7846e8 | 0.32.5 | 2026-08-13 | Apple M3 Pro, 18 GB |
+| B1 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| B2 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| B3 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| C1 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| C2 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| A1 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| A4 | a5588ac | 0.30.10 | 2026-08-14 | MacBook Air M4, 16 GB |
+| A2 | 1abed97 | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
+| A3 | 1abed97 | 0.32.9 | 2026-08-13 | Kaggle, Tesla T4 x2 (~29 GB VRAM), CUDA |
+| A5 | 1abed97 | 0.20.7 | 2026-08-13 | Apple M1 Pro, 16 GB |
+| A6 | 1abed97 | 0.20.7 | 2026-08-13 | M-series (M1 Pro), 16 GB |
+| A7 | 1abed97 | 0.9.0 | 2026-08-13 | M-series, 24 GB |
+| A8 | 1abed97 | 0.9.0 | 2026-08-13 | M-series, 24 GB |
+| A9 | 1abed97 | 0.32.5 | 2026-08-13 | Apple M3 Pro, 18 GB |
 
 ## Notes
 
@@ -164,7 +164,7 @@ summary added ~33% on top of the code going into the judge).
 - `judge_parse_failures`=3: on 3 files the judge's reply had no parsable findings object
   (counted apart from "found nothing"). Those files still counted in the denominator — with
   tn=1 and fpr≈0.97, A6 flags almost everything, so this doesn't dent recall but is worth a line.
-- Provenance caveat: HEAD at run time was `c7846e8`, but the A6 files (`vulnbench/conditions/a6_summarize.py`)
+- Provenance caveat: HEAD at run time was `1abed97`, but the A6 files (`vulnbench/conditions/a6_summarize.py`)
   were still **uncommitted** on branch `A6-test-results` — not on the pinned `cs453` commit. The
   card is the authoritative record; re-run after A6 lands on `cs453` if you want a sha that
   reproduces exactly.
